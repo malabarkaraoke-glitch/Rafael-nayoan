@@ -1,0 +1,2472 @@
+-- GOD PANEL (tema oranye, menu kiri, 1 skrip)
+-- Menu kiri : God, Tele, Esp, Speed, Aim (SILENT AIM), Lampu, Generator + RESET
+-- Pengaturan otomatis disimpan (file GodPanel_Config.json) dan dimuat lagi saat skrip dijalankan.
+-- Baru: Generator punya ESP LABU, ZONA SUKSES bisa digeser, dan KALIBRASI dari tekanan manual.
+
+Pemain lokal = game:GetService("Pemain")
+RunService lokal=game:GetService("RunService")
+UIS lokal = game:GetService("UserInputService")
+StarterGui lokal = game:GetService("StarterGui")
+Pencahayaan lokal = game:GetService("Pencahayaan")
+Layanan Gui lokal = game:GetService("Layanan Gui")
+local HttpService=game:GetService("HttpService")
+lokal lp=Pemain.PemainLokal
+lokal G=(getgenv dan getgenv()) atau _G
+
+-- ====== BERSIHKAN VERSI LAMA ======
+jika G.GodConns maka
+	untuk _,c dalam ipairs(G.GodConns) lakukan pcall(fungsi() c:Disconnect() end) end
+akhir
+koneksi lokal={}
+G.GodConns=conns
+fungsi lokal track(c) conns[#conns+1]=c kembalikan c akhir
+
+pcall(function() RunService:UnbindFromRenderStep("GodAim") end)
+pcall(function() RunService:UnbindFromRenderStep("GodAimLine") end)
+pcall(function() RunService:UnbindFromRenderStep("DeltaPart5_SC") akhir)
+
+Mengerjakan
+	akar lokal={}
+	pcall(fungsi())
+		lokal pg=lp:WaitForChild("PlayerGui",5)
+		jika pg maka roots[#roots+1]=pg akhir
+	akhir)
+	pcall(function() roots[#roots+1]=game:GetService("CoreGui") end)
+	pcall(function() if gethui then roots[#roots+1]=gethui() end end)
+	untuk _,r dalam ipairs(akar) lakukan
+		untuk _,n dalam ipairs({"GodGui","GodESP","DeltaPart5_Skillcheck","GodAimMini"}) lakukan
+			pcall(fungsi())
+				lokal o=r:TemukanAnakPertama(n)
+				jika o maka o:Destroy() berakhir
+			akhir)
+		akhir
+	akhir
+akhir
+
+-- ===================== KONFIGURASI (SIMPAN) =====================
+local CFG_FILE="GodPanel_Config.json"
+lokal tersimpan={}
+Mengerjakan
+	lokal ok, data = pcall(fungsi())
+		jika isfile dan readfile dan isfile(CFG_FILE) maka
+			kembalikan HttpService:JSONDecode(readfile(CFG_FILE))
+		akhir
+	akhir)
+	jika oke dan tipe (data) == "tabel" maka
+		data tersimpan
+	jika tipe(G.GodConfig)=="table" maka
+		disimpan=G.GodConfig
+	akhir
+akhir
+
+pemuatan lokal=benar
+kontrol lokal={}
+local saveQueued=false
+local autoSave=(saved._autosave~=false)
+
+fungsi lokal saveNow()
+	lokal t={_autosave=autoSave}
+	jika autoSave maka
+		untuk k,c dalam pasangan (kontrol) lakukan t[k]=c.get()
+	akhir
+	G.GodConfig=t
+	pcall(fungsi())
+		jika writefile maka writefile(CFG_FILE,HttpService:JSONEncode(t)) selesai
+	akhir)
+akhir
+fungsi lokal queueSave()
+	Jika sedang memuat atau antrean penyimpanan sedang aktif atau tidak menggunakan fitur simpan otomatis, maka kembalikan nilai akhir.
+	simpanAntrian=benar
+	tugas.tunda(0.5,fungsi())
+		simpanAntrian=false
+		simpanSekarang()
+	akhir)
+akhir
+
+-- ===================== PEMBANTU =====================
+FONT lokal=Enum.Font.Kode
+FONTB lokal=Enum.Font.SourceSansBold
+
+Latar belakang lokal = Warna3.dariRGB(24,19,14)
+lokal SIDE=Color3.fromRGB(34,27,20)
+lokal SIDE2=Color3.fromRGB(52,40,28)
+baris lokal = Warna3.dariRGB(42,33,24)
+lokal HEAD=Color3.fromRGB(40,30,20)
+ACC lokal = Warna3.dariRGB(255,140,0)
+TXT lokal=Warna3.dariRGB(255,240,225)
+DIM lokal = Warna3.dariRGB(180,160,140)
+lokal OFFBG=Color3.fromRGB(66,52,38)
+lokal HITAM=Warna3.dariRGB(0,0,0)
+lokal HIJAU=Warna3.dariRGB(0,170,80)
+
+PALET lokal={
+	{n="Merah",c=Color3.fromRGB(220,60,60)},
+	{n="Oranye",c=Color3.fromRGB(235,130,30)},
+	{n="Kuning",c=Color3.fromRGB(200,170,40)},
+	{n="Hijau",c=Color3.fromRGB(60,180,90)},
+	{n="Cyan",c=Color3.fromRGB(60,170,210)},
+	{n="Biru",c=Color3.fromRGB(80,110,220)},
+	{n="Ungu",c=Color3.fromRGB(130,70,190)},
+	{n="Merah Muda",c=Color3.fromRGB(220,100,160)},
+	{n="Putih",c=Color3.fromRGB(230,230,230)},
+}
+
+fungsi lokal baru(kelas,props,parent)
+	lokal o = Instance.baru(kelas)
+	untuk k,v dalam pasangan (props) lakukan o[k]=v akhir
+	o.Orang tua=orang tua
+	kembali ke
+akhir
+fungsi lokal corner(o,r) baru("UICorner",{CornerRadius=UDim.new(0,r atau 6)},o) selesai
+fungsi lokal stroke(o,warna,th)
+	return new("UIStroke",{Color=color,Thickness=th or 1.5,ApplyStrokeMode=Enum.ApplyStrokeMode.Border},o)
+akhir
+fungsi lokal notify(t,x)
+	Jika sedang memuat, kembalikan akhir.
+	pcall(function() StarterGui:SetCore("SendNotification",{Title=t;Text=x;Duration=2.5;}) end)
+akhir
+fungsi lokal getHRP(plr)
+	lokal c=plr dan plr.Karakter
+	kembalikan c dan c:FindFirstChild("HumanoidRootPart")
+akhir
+
+-- daftar pemain
+pendengar pemutar lokal = {}
+Pemain yang dikenal lokal = {}
+fungsi lokal playersChanged()
+	lokal berubah=false
+	lokal cur={}
+	untuk _,pl dalam ipairs(Players:GetPlayers()) lakukan
+		cur[pl]=true
+		jika tidak diketahuiPlayers[pl] maka changed=true end
+	akhir
+	untuk pl dalam pasangan (knownPlayers) lakukan
+		jika tidak cur[pl] maka changed=true end
+	akhir
+	pemain yang dikenal=saat ini
+	pengembalian diubah
+akhir
+fungsi lokal firePlayers()
+	untuk _,fn dalam ipairs(playerListeners) lakukan pcall(fn)
+akhir
+fungsi lokal padaPemain(fn)
+	tabel.sisipkan(playerListeners,fn)
+	pcall(fn)
+akhir
+pemainberubah()
+lacak(Pemain.PemainDitambahkan:Hubungkan(fungsi() tugas tunggu(0.2); pemainBerubah(); tembakPemain() akhir))
+lacak(Pemain.PemainMenghapus:Hubungkan(fungsi() tugas tunggu(0.1); pemainBerubah(); tembakPemain() akhir))
+
+-- tembak alat (auto serang)
+api terakhir lokal=0
+fungsi lokal fireTool(targetPart)
+	lokal sekarang=os.clock()
+	jika now-lastFire<0.08 maka kembalikan false
+	karakter lokal=lp.Karakter
+	alat lokal=char dan char:FindFirstChildOfClass("Tool")
+	jika bukan alat maka kembalikan false end
+	lastFire=sekarang
+	pcall(function() tool:Activate() end)
+	pegangan lokal=alat:TemukanAnakPertama("Pegangan")
+	jika handle dan targetPart dan firetouchinterest maka
+		pcall(fungsi())
+			firetouchinterest(targetPart,handle,0)
+			firetouchinterest(targetPart,handle,1)
+		akhir)
+	akhir
+	kembalikan nilai benar
+akhir
+
+-- ====== GUI UTAMA ======
+lokal utama = Instance.new("ScreenGui")
+main.Name="GodGui"
+main.ResetOnSpawn=false
+Urutan Tampilan utama=999
+Mengerjakan
+	lokal ok=pcall(fungsi()
+		main.Parent=(gethui dan gethui()) atau game:GetService("CoreGui")
+	akhir)
+	jika tidak oke atau bukan induk utama maka
+		main.Parent=lp:WaitForChild("PlayerGui")
+	akhir
+akhir
+lokal espFolder=new("Folder",{Name="GodESP"},main.Parent)
+
+Bingkai lokal = baru ("Bingkai", {
+	BackgroundColor3=BG,Posisi=UDim2.new(0.05,0,0.2,0),
+	Ukuran=UDim2.baru(0,340,0,290),Aktif=true,KlipKeturunan=true,
+},utama)
+sudut(Bingkai,10)
+local scaleObj=new("UIScale",{Scale=1},Frame)
+goresan(Bingkai,ACC,2)
+
+-- header
+lokal Head=new("Frame",{BackgroundColor3=HEAD,Size=UDim2.new(1,0,0,30)},Frame)
+lokal TitleLbl=baru("Label Teks",{
+	BackgroundTransparency=1,Posisi=UDim2.new(0,10,0,0),Ukuran=UDim2.new(1,-150,1,0),
+	Font=FONTB,Text="Fungsi",TextColor3=ACC,TextSize=17,
+	TextXAlignment=Enum.TextXAlignment.Left,
+},Kepala)
+
+fungsi lokal headBtn(teks, dari kanan, warna, w)
+	lokal b=baru("Tombol Teks",{
+		BackgroundColor3=warna,Posisi=UDim2.new(1,-dariKanan,0.5,-11),
+		Ukuran=UDim2.baru(0,w atau 24,0,22),Font=FONTB,Teks=teks,
+		Warna Teks3=TXT,Ukuran Teks=15,Warna Tombol Otomatis=true,
+	},Kepala)
+	sudut(b,5)
+	kembali b
+akhir
+local closeBtn=headBtn("x",30,Color3.fromRGB(170,50,30))
+tombol mini lokal=tombol kepala("=",58,SIDE2)
+tombol plus lokal = tombol kepala("+", 86, SISI2)
+lokal minusBtn=headBtn("-",114,SIDE2)
+
+Badan lokal = baru("Bingkai", {Transparansi Latar Belakang = 1, Posisi = UDim2.new(0, 0, 0, 30), Ukuran = UDim2.new(1, 0, 1, -30)}, Bingkai)
+sidebar lokal = baru("Bingkai", {Warna Latar Belakang3 = SISI, Ukuran = UDim2.baru(0, 74, 1, 0)}, Isi)
+baru("UIListLayout",{
+	Padding=UDim.new(0,2),SortOrder=Enum.SortOrder.LayoutOrder,
+	HorizontalAlignment=Enum.HorizontalAlignment.Center,
+},sidebar)
+baru("UIPadding",{PaddingTop=UDim.new(0,4)},sidebar)
+konten lokal=baru("Bingkai",{
+	BackgroundTransparency=1,Posisi=UDim2.new(0,78,0,4),Ukuran=UDim2.new(1,-82,1,-8),
+},Tubuh)
+
+fungsi lokal setScale(v)
+	scaleObj.Scale=math.clamp(math.floor(v*10+0.5)/10,0.6,1.6)
+akhir
+minusBtn.MouseButton1Click:Connect(function() setScale(scaleObj.Scale-0.1) end)
+plusBtn.MouseButton1Click:Connect(function() setScale(scaleObj.Scale+0.1) end)
+
+lokal diminimalkan=false
+miniBtn.MouseButton1Click:Connect(function()
+	diminimalkan = tidak diminimalkan
+	Body.Visible=tidak diminimalkan
+	Frame.Size=minimized dan UDim2.new(0,340,0,30) atau UDim2.new(0,340,0,290)
+akhir)
+closeBtn.MouseButton1Click:Connect(function() Frame.Visible=false end)
+
+-- ser
+fungsi lokal makeDraggable(handle,target,onTap)
+	penyeretan lokal, dipindahkan, dragStart, startPos, faktor=false, false, nil, nil, 1
+	handle.InputBegan:Connect(function(i))
+		jika i.UserInputType==Enum.UserInputType.MouseButton1
+		atau i.UserInputType==Enum.UserInputType.Touch maka
+			menyeret=benar; dipindahkan=salah
+			dragStart=i.Posisi; startPos=target.Posisi
+			lokal sc=target:TemukanAnakPertamaDariKelas("UIScale")
+			faktor=sc dan sc.Skala atau 1
+			i.Changed:Connect(function()
+				jika i.UserInputState==Enum.UserInputState.End maka
+					menyeret=false
+					jika tidak dipindahkan dan onTap maka onTap() berakhir
+				akhir
+			akhir)
+		akhir
+	akhir)
+	lacak(UIS.InputChanged:Hubungkan(fungsi(i))
+		jika menyeret dan (i.UserInputType==Enum.UserInputType.MouseMovement
+		atau i.UserInputType==Enum.UserInputType.Touch) maka
+			lokal d=i.Posisi-dragStart
+			jika d.Magnitude>6 maka moved=true end
+			d=d/faktor
+			target.Posisi=UDim2.baru(
+				startPos.X.Scale,startPos.X.Offset+dX,
+				startPos.Y.Scale,startPos.Y.Offset+dY)
+		akhir
+	akhir))
+akhir
+makeDraggable(Head,Frame)
+
+local iconBtn=new("TextButton",{
+	BackgroundColor3=HEAD,Position=UDim2.new(0,10,0.12,0),Size=UDim2.new(0,46,0,46),
+	Font=FONTB,Teks="☠️",UkuranTeks=26,WarnaTeks3=ACC,WarnaTombolOtomatis=false,Aktif=true,
+},utama)
+pojok(tombolik,23)
+stroke(iconBtn,ACC,2)
+makeDraggable(iconBtn,iconBtn,function() Frame.Visible=not Frame.Visible end)
+
+-- ====== TAB + KOMPONEN ======
+tab lokal={}
+fungsi lokal showTab(n)
+	untuk i,t dalam ipairs(tabs) lakukan
+		lokal aktif=(i==n)
+		t.page.Visible=on
+		t.btn.BackgroundColor3=on dan ACC atau SIDE2
+		t.btn.TextColor3=on dan BLACK atau TXT
+	akhir
+	jika tab[n] maka TitleLbl.Text=tab[n].title end
+akhir
+
+fungsi lokal addTab(label,title)
+	indeks lokal=#tabs+1
+	local btn=new("TextButton",{
+		Ukuran=UDim2.baru(1,-8,0,26),WarnaLatarBelakang3=SISI2,Font=FONTB,Teks=label,
+		TextColor3=TXT,TextSize=13,LayoutOrder=idx,AutoButtonColor=false,
+	},sidebar)
+	pojok(tombol,6)
+	halaman lokal=baru("ScrollingFrame",{
+		Transparansi Latar Belakang=1, Ukuran=UDim2.baru(1,0,1,0), UkuranPikselBatas=0,
+		Ketebalan Bilah Gulir=3, Warna Gambar Bilah Gulir3=ACC, Ukuran Kanvas=UDim2.baru(0,0,0,0),
+		UkuranKanvasOtomatis = Enum.UkuranOtomatisY, Terlihat = false,
+	},isi)
+	baru("UIListLayout",{
+		Padding=UDim.new(0,4),SortOrder=Enum.SortOrder.LayoutOrder,
+		HorizontalAlignment=Enum.HorizontalAlignment.Center,
+	},halaman)
+	baru("UIPadding",{PaddingTop=UDim.new(0,2),PaddingBottom=UDim.new(0,6)},page)
+	tab[idx]={btn=btn,page=page,title=title}
+	btn.MouseButton1Click:Connect(function() showTab(idx) end)
+
+	lokal P={halaman=halaman}
+	lokal n=0
+	fungsi lokal ord() n=n+1 kembalikan n akhir
+
+	fungsi P.row(h)
+		baris lokal = baru("Bingkai", {Ukuran = UDim2.baru(1, -8, 0, h atau 30), Warna Latar Belakang3 = BARIS, Urutan Tata Letak = ord()}, halaman)
+		sudut(baris,6)
+		kembali ke baris
+	akhir
+	fungsi P.rowLabel(baris,teks)
+		kembalikan baru("TextLabel",{
+			BackgroundTransparency=1,Posisi=UDim2.new(0,8,0,0),Ukuran=UDim2.new(1,-100,1,0),
+			Font=FONT,Teks=teks,TeksWarna3=TXT,Ukuran Teks=13,
+			TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,
+		},baris)
+	akhir
+	fungsi P.rowButton(baris,teks,w,dariKanan)
+		lokal b=baru("Tombol Teks",{
+			Posisi=UDim2.baru(1,-((dariKanan atau 6)+w),0.5,-11),Ukuran=UDim2.baru(0,w,0,22),
+			BackgroundColor3=OFFBG,Font=FONTB,Text=text,TextColor3=TXT,TextSize=13,
+			AutoButtonColor=true,
+		},baris)
+		sudut(b,5)
+		kembali b
+	akhir
+	fungsi P.info(teks,h)
+		lokal l=baru("TextLabel",{
+			Ukuran=UDim2.baru(1,-8,0,h atau 24),WarnaLatarBelakang3=BARIS,Font=FONT,Teks=teks,
+			Warna Teks3=DIM,Ukuran Teks=12,Teks Dibungkus=true,
+			TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Top,
+			Tata Letak = ord(),
+		},halaman)
+		sudut(l,6)
+		baru("UIPadding",{PaddingLeft=UDim.new(0,8),PaddingRight=UDim.new(0,6),PaddingTop=UDim.new(0,4)},l)
+		kembali l
+	akhir
+	fungsi P.button(teks,cb,warna)
+		lokal b=baru("Tombol Teks",{
+			Ukuran=UDim2.baru(1,-8,0,30),WarnaLatarBelakang3=warna atau SISI2,Font=FONTB,Teks=teks,
+			TextColor3=TXT,TextSize=14,LayoutOrder=ord(),AutoButtonColor=true,
+		},halaman)
+		sudut(b,6)
+		b.MouseButton1Click:Connect(function() if cb then cb() end end)
+		kembali b
+	akhir
+	fungsi P.kontainer()
+		lokal f=baru("Frame",{
+			Ukuran=UDim2.baru(1,-8,0,0),UkuranOtomatis=Enum.UkuranOtomatis.Y,
+			BackgroundTransparency=1,LayoutOrder=ord(),
+		},halaman)
+		baru("UIListLayout",{Padding=UDim.new(0,3),SortOrder=Enum.SortOrder.LayoutOrder},f)
+		kembali f
+	akhir
+	fungsi P.toggle(key,label,default,cb)
+		baris lokal=P.baris(30)
+		P.rowLabel(row,label)
+		local btn=P.rowButton(row,"OFF",58)
+		lokal c={nilai=false,default=default dan benar atau salah}
+		fungsi lokal paint()
+			btn.Text=c.value dan "ON" atau "OFF"
+			btn.BackgroundColor3=c.value dan ACC atau OFFBG
+			btn.TextColor3=c.value dan BLACK atau DIM
+		akhir
+		fungsi c.set(v,quiet)
+			c.value=v dan benar atau salah
+			cat()
+			jika cb dan tidak tenang maka cb(c.value) berakhir
+			antreanSimpan()
+		akhir
+		fungsi c.get() mengembalikan c.value akhir
+		btn.MouseButton1Click:Connect(function() c.set(not c.value) end)
+		c.value=c.default
+		cat()
+		jika c.default dan cb maka pcall(cb,true) end
+		jika kunci maka controls[kunci]=c akhir
+		kembali c
+	akhir
+	fungsi P.warna(kunci,label,default,cb)
+		baris lokal=P.baris(48)
+		baru("Label Teks",{
+			BackgroundTransparency=1,Posisi=UDim2.new(0,8,0,2),Ukuran=UDim2.new(1,-16,0,16),
+			Font=FONT,Teks=label,TeksWarna3=DIM,Ukuran Teks=11,
+			TextXAlignment=Enum.TextXAlignment.Left,
+		},baris)
+		lokal c={nilai=default,default=default}
+		sw lokal={}
+		fungsi lokal paint()
+			untuk i,s dalam ipairs(sw) lakukan s.Enabled=(i==c.value) end
+		akhir
+		fungsi c.set(i,quiet)
+			i=math.clamp(math.floor(tonumber(i) or c.default),1,#PALETTE)
+			c.nilai=i
+			cat()
+			jika cb dan tidak tenang maka cb(i) berakhir
+			antreanSimpan()
+		akhir
+		fungsi c.get() mengembalikan c.value akhir
+		untuk i,p dalam ipairs(PALETTE) lakukan
+			lokal b=baru("Tombol Teks",{
+				BackgroundColor3=pc,Text="",AutoButtonColor=false,
+				Posisi=UDim2.baru(0,8+(i-1)*26,0,22),Ukuran=UDim2.baru(0,22,0,20),
+			},baris)
+			sudut(b,5)
+			sw[i]=new("UIStroke",{
+				Warna=Warna3.dariRGB(255,255,255),Ketebalan=2,Diaktifkan=false,
+				ApplyStrokeMode=Enum.ApplyStrokeMode.Border,
+			},B)
+			b.MouseButton1Click:Connect(function() c.set(i) end)
+		akhir
+		cat()
+		jika kunci maka controls[kunci]=c akhir
+		kembali c
+	akhir
+	kembali P
+akhir
+
+bagian fungsi lokal(nama,fn)
+	lokal ok,err=pcall(fn)
+	jika tidak oke maka
+		peringatkan("["..nama.." ERROR] "..tostring(err))
+		pcall(fungsi())
+			StarterGui:SetCore("KirimNotifikasi",{Judul=nama.."kesalahan";Teks=tostring(kesalahan);Durasi=5;})
+		akhir)
+	akhir
+akhir
+
+-- =====================================================================
+-- TAB GOD
+-- =====================================================================
+bagian("TUHAN",fungsi()
+	lokal P=addTab("Tuhan","TUHAN")
+	HP_DEWA_lokal=100000
+	godOn lokal,noTouchOn=salah,salah
+	lokal origMax=100
+	local lastSafeCFrame=nil
+	godConns lokal={}
+	local touchConn=nil
+
+	fungsi lokal clearGodConns()
+		untuk _,c dalam ipairs(godConns) lakukan pcall(fungsi() c:Disconnect() end) end
+		godConns={}
+	akhir
+	fungsi lokal setNoTouch(char,on)
+		untuk _,p dalam ipairs(char:GetDescendants()) lakukan
+			jika p:IsA("BasePart") dan bukan p:FindFirstAncestorOfClass("Tool") maka
+				pcall(function() p.CanTouch=not on end)
+			akhir
+		akhir
+	akhir
+	fungsi lokal applyNoTouch()
+		jika touchConn maka touchConn:Disconnect(); touchConn=nil end
+		karakter lokal=lp.Karakter
+		jika bukan karakter maka kembalikan akhir
+		lokal aktif=(godOn dan noTouchOn)
+		setNoTouch(char,on)
+		jika saat itu
+			touchConn=char.DescendantAdded:Connect(function(d)
+				jika d:IsA("BasePart") dan bukan d:FindFirstAncestorOfClass("Tool") maka
+					pcall(function() d.CanTouch=false end)
+				akhir
+			akhir)
+		akhir
+	akhir
+
+	-- sumber darah lain
+	Sumber daya lokal hpSources={}
+	lokal hpSeen=setmetatable({},{__mode="k"})
+	local hpSeenAttr=setmetatable({},{__mode="k"})
+	fungsi lokal isHpName(n)
+		lokal l=string.lower(n)
+		Jika string.find(l,"max",1,true) maka kembalikan false
+		untuk _,w dalam ipairs({"health","hp","darah","blood","life","vitality"}) lakukan
+			Jika string.find(l,w,1,true) maka kembalikan true
+		akhir
+		kembalikan false
+	akhir
+	fungsi lokal readSrc(r)
+		Jika r.kind == "value", maka kembalikan r.obj.Value.
+		kembalikan r.inst:GetAttribute(r.name)
+	akhir
+	fungsi lokal scanParent(parent,deep)
+		jika bukan induk maka kembalikan akhir
+		item lokal=dalam dan induk:GetDescendants() atau induk:GetChildren()
+		untuk _,d dalam ipairs(items) lakukan
+			jika (d:IsA("NumberValue") atau d:IsA("IntValue")) dan isHpName(d.Name) dan bukan hpSeen[d] maka
+				hpSeen[d]=true
+				table.insert(hpSources,{kind="value",obj=d,max=d.Value})
+			akhir
+		akhir
+		untuk nama, nilai dalam pasangan (orang tua:GetAttributes()) lakukan
+			jika tipe(val)=="angka" dan isHpName(nama) maka
+				hpSeenAttr[parent]=hpSeenAttr[parent] atau {}
+				jika tidak hpSeenAttr[parent][name] maka
+					hpSeenAttr[parent][name]=true
+					table.insert(hpSources,{kind="attr",inst=parent,name=name,max=val})
+				akhir
+			akhir
+		akhir
+	akhir
+	fungsi lokal scanHp()
+		karakter lokal=lp.Karakter
+		jika char maka scanParent(char,true) end
+		lokal hum=char dan char:FindFirstChildOfClass("Humanoid")
+		jika hum maka scanParent(hum,false) end
+		untuk _,c dalam ipairs(lp:GetChildren()) lakukan
+			jika c.Name~="PlayerGui" maka scanParent(c,true) end
+		akhir
+		scanParent(lp,false)
+		lokal rs=game:GetService("ReplicatedStorage")
+		lokal pf=rs:FindFirstChild(lp.Name) atau rs:FindFirstChild(tostring(lp.UserId))
+		jika pf maka scanParent(pf,true) end
+		lokal ls=lp:TemukanAnakPertama("statistikpemimpin")
+		jika ls maka scanParent(ls,false) end
+		untuk i=#hpSources,1,-1 lakukan
+			lokal r=hpSources[i]
+			induk lokal=(r.kind=="value") dan r.obj.Parent atau r.inst.Parent
+			jika bukan orang tua maka
+				tabel.hapus(hpSources,i)
+			kalau tidak
+				lokal cur=readSrc(r)
+				Jika tipe (cur) == "angka" dan cur > r.max maka r.max = cur
+			akhir
+		akhir
+	akhir
+	fungsi lokal healSources(force)
+		untuk _,r dalam ipairs(hpSources) lakukan
+			lokal cur=readSrc(r)
+			jika tipe(cur)=="number" dan cur~=r.max dan (force atau cur<r.max) maka
+				jika r.kind=="value" maka
+					pcall(function() r.obj.Value=r.max end)
+				kalau tidak
+					pcall(function() r.inst:SetAttribute(r.name,r.max) end)
+				akhir
+			akhir
+		akhir
+	akhir
+
+	fungsi lokal setupChar(char)
+		lokal hum=char:WaitForChild("Humanoid",10)
+		hrp lokal=char:WaitForChild("HumanoidRootPart",10)
+		jika bukan hum atau bukan hrp maka kembali ke akhir
+		clearGodConns()
+		jika Tuhan ada maka
+			hum.MaxHealth=GOD_HP
+			hum.Kesehatan=GOD_HP
+			pcall(function() hum.BreakJointsOnDeath=false end)
+			pcall(function() hum:SetStateEnabled(Enum.HumanoidStateType.Dead,false) end)
+			tabel.insert(godConns,hum.Died:Connect(function()
+				jika bukan godOn maka kembalikan akhir
+				tugas.tunggu(0.1)
+				Jika lastSafeCFrame maka hrp.CFrame=lastSafeCFrame end
+				hum.MaxHealth=GOD_HP
+				hum.Kesehatan=GOD_HP
+			akhir))
+			table.insert(godConns,hum.HealthChanged:Connect(function()
+				jika godOn dan hum.Parent dan hum.Health<hum.MaxHealth maka
+					hum.Kesehatan=hum.KesehatanMaksimal
+				akhir
+			akhir))
+		akhir
+		applyNoTouch()
+	akhir
+
+	-- UI
+	P.toggle("god","MODE DEWA",false,function(on)
+		Tuhan aktif=aktif
+		karakter lokal=lp.Karakter
+		lokal hum=char dan char:FindFirstChildOfClass("Humanoid")
+		jika saat itu
+			jika hum dan hum.MaxHealth<GOD_HP maka origMax=hum.MaxHealth end
+			jika char maka task.spawn(setupChar,char) end
+			notify("GOD MODE ON","HP terkunci")
+		kalau tidak
+			clearGodConns()
+			jika hum maka
+				hum.MaxHealth=origMax
+				hum.Health=origMax
+				pcall(function() hum:SetStateEnabled(Enum.HumanoidStateType.Dead,true) end)
+			akhir
+			applyNoTouch()
+			notify("GOD MODE OFF","HP normal lagi")
+		akhir
+	akhir)
+	P.toggle("noTouch","KEBAL TOOL",false,function(on)
+		noTouchOn=on
+		applyNoTouch()
+		jika aktif maka beri tahu ("Aktifkan alat saat GOD MODE ON") selesai
+	akhir)
+	P.button("SEKARANG HP LENGKAP",function()
+		karakter lokal=lp.Karakter
+		lokal hum=char dan char:FindFirstChildOfClass("Humanoid")
+		jika hum maka hum.Health=hum.MaxHealth selesai
+		scanHp()
+		healSources(true)
+		notify("HP Penuh","Darah terisi penuh")
+	akhir, Warna3.dariRGB(150,80,20))
+	lokal hpLbl=P.info("HP: -",24)
+	local posLbl=P.info("Posisi: -",24)
+	local srcLbl=P.info("Sumber HP: mencari...",40)
+
+	lacak(RunService.Heartbeat:Connect(function()
+		karakter lokal=lp.Karakter
+		hrp lokal=char dan char:FindFirstChild("HumanoidRootPart")
+		lokal hum=char dan char:FindFirstChildOfClass("Humanoid")
+		jika hrp dan hum maka
+			jika Tuhan ada maka
+				jika hum.MaxHealth~=GOD_HP maka hum.MaxHealth=GOD_HP
+				Jika kesehatan manusia < HP Dewa, maka kesehatan manusia = HP Dewa.
+				healSources(false)
+			akhir
+			jika kesehatan manusia > 0 maka
+				lastSafeCFrame=hrp.CFrame
+			akhir
+		akhir
+	akhir))
+
+	-- label hanya diperbarui 3x/detik dan hanya saat tab God terbuka
+	tugas.munculkan(fungsi())
+		sementara main.Parent lakukan
+			tugas.tunggu(0.33)
+			jika Frame.Visible dan P.page.Visible maka
+				karakter lokal=lp.Karakter
+				hrp lokal=char dan char:FindFirstChild("HumanoidRootPart")
+				lokal hum=char dan char:FindFirstChildOfClass("Humanoid")
+				jika hrp dan hum maka
+					lokal p=hrp.Posisi
+					posLbl.Text=string.format("Posisi: %.0f, %.0f, %.0f",pX,pY,pZ)
+					hp lokal = kesehatan manusia
+					jika godOn dan hp>=GOD_HP*0.99 maka
+						hpLbl.Text="HP: GOD (terkunci)"
+					kalau tidak
+						hpLbl.Text=string.format("HP: %.0f / %.0f",hp,hum.MaxHealth)
+					akhir
+				akhir
+			akhir
+		akhir
+	akhir)
+
+	watchChar lokal,watchHum=nihil,nihil
+	tugas.munculkan(fungsi())
+		sementara main.Parent lakukan
+			tugas.tunggu(0.3)
+			lokal c=lp.Karakter
+			lokal h=c dan c:TemukanAnakPertamaDariKelas("Humanoid")
+			jika c dan h dan (c~=watchChar atau h~=watchHum) maka
+				watchChar,watchHum=c,h
+				jika godOn maka task.spawn(setupChar,c) end
+			akhir
+		akhir
+	akhir)
+
+	tugas.munculkan(fungsi())
+		sementara main.Parent lakukan
+			jika godOn atau (Frame.Visible dan P.page.Visible) maka
+				scanHp()
+				nama lokal={}
+				untuk i=1,math.min(3,#hpSources) lakukan
+					lokal r=hpSources[i]
+					nama[i]=(r.kind=="value") dan r.obj.Name atau r.name
+				akhir
+				srcLbl.Text="Sumber HP: Humanoid"..((#names>0) and (" + "..table.concat(names,", ")) or " saja")
+			akhir
+			tugas.tunggu(godOn dan 2 atau 3)
+		akhir
+	akhir)
+akhir)
+
+-- =====================================================================
+-- TAB TELE
+-- =====================================================================
+bagian("TELE",fungsi()
+	lokal P=addTab("Tele","TELEPORT")
+	lokal terpilih=nil
+	mode lokal="normal"
+	local stickConn=nil
+	autoAtk lokal=false
+	itemBtns lokal={}
+
+	local selLbl=P.info("Target: belum dipilih",24)
+	daftar lokal=P.kontainer()
+	mode lokalRow=P.row(30)
+	P.rowLabel(modeRow,"Mode")
+	mode lokalBtn=P.rowButton(modeRow,"BIASA",110)
+	goBtn lokal = P.button("TELEPORT", nil, Color3.fromRGB(150, 80, 20))
+	P.toggle("autoAtk","AUTO SERANG",false,function(on) autoAtk=on end)
+
+	fungsi lokal updateGoText()
+		jika mode=="normal" maka
+			goBtn.Text="TELEPORT"
+			goBtn.BackgroundColor3=Color3.fromRGB(150,80,20)
+		jika stickConn maka
+			goBtn.Text="BERHENTI NEMPEL"
+			goBtn.BackgroundColor3=Color3.fromRGB(170,50,30)
+		kalau tidak
+			goBtn.Text="MULAI NEMPEL"
+			goBtn.BackgroundColor3=Color3.fromRGB(120,80,160)
+		akhir
+	akhir
+	fungsi lokal stopStick()
+		jika stickConn maka stickConn:Disconnect(); stickConn=nil end
+		updateGoText()
+	akhir
+	fungsi lokal highlight()
+		untuk pl,b dalam pasangan (itemBtns) lakukan
+			lokal aktif=(pl==terpilih)
+			b.BackgroundColor3=on dan ACC atau ROW
+			b.TextColor3=on dan BLACK atau TXT
+		akhir
+		selLbl.Text=selected and ("Target: "..selected.DisplayName) or "Target: belum dipilih"
+	akhir
+	fungsi lokal refreshList()
+		untuk _,c dalam ipairs(list:GetChildren()) lakukan
+			jika c:IsA("TextButton") maka c:Destroy() end
+		akhir
+		itemBtns={}
+		Jika terpilih dan tidak terpilih. Orang tua maka terpilih = nil; stopStick() berakhir
+		untuk _,pl dalam ipairs(Players:GetPlayers()) lakukan
+			jika pl~=lp maka
+				lokal b=baru("Tombol Teks",{
+					Ukuran=UDim2.baru(1,0,0,26),WarnaLatarBelakang3=BARIS,Font=FONT,
+					Teks=pl.NamaTayang.." (@"..pl.Nama..")",WarnaTeks3=TXT,UkuranTeks=12,
+					TextTruncate=Enum.TextTruncate.AtEnd,AutoButtonColor=false,
+				},daftar)
+				sudut(b,6)
+				b.MouseButton1Click:Connect(function()
+					dipilih=pl
+					menyorot()
+				akhir)
+				itemBtns[pl]=b
+			akhir
+		akhir
+		menyorot()
+	akhir
+	pada Pemain (segarkan Daftar)
+
+	modeBtn.MouseButton1Click:Connect(function()
+		stopStick()
+		mode=(mode=="normal") dan "nempel" atau "normal"
+		modeBtn.Text=(mode=="normal") dan "BIASA" atau "NEMPEL"
+		updateGoText()
+	akhir)
+
+	goBtn.MouseButton1Click:Connect(function()
+		jika tidak dipilih atau tidak dipilih. Orang tua kemudian
+			notify("Pilih target","Tap nama pemain di daftar dulu")
+			kembali
+		akhir
+		jika mode=="normal" maka
+			lokal saya,r=getHRP(lp),getHRP(terpilih)
+			jika saya dan r maka
+				my.CFrame = r.CFrame * CFrame.new(0, 0, 3)
+			kalau tidak
+				notify("Gagal","Karakter target belum ada")
+			akhir
+		kalau tidak
+			jika stickConn maka stopStick() kembalikan end
+			stickConn=RunService.Detak Jantung:Hubungkan(fungsi()
+				Jika tidak dipilih atau tidak dipilih. Orang Tua maka stopStick() kembali akhir
+				lokal saya,r=getHRP(lp),getHRP(terpilih)
+				jika bukan milikku atau bukan r maka kembalikan akhir
+				my.CFrame = CFrame.new(r.Position - r.CFrame.LookVector * 3, r.Position)
+				jika autoAtk maka fireTool(r) berakhir
+			akhir)
+			updateGoText()
+		akhir
+	akhir)
+akhir)
+
+-- =====================================================================
+-- TAB ESP (pemain)
+-- =====================================================================
+bagian("ESP",fungsi()
+	lokal P=addTab("Esp", "ESP PEMAIN")
+	lokal espMaster=false
+	local HIDE_TEAMS={Spectator=true}
+	lokal espOver,espOff,espObjs,espRows={},{},{},{}
+
+	P.toggle("espPlayer","ESP PEMAIN",false,function(on)
+		espMaster=aktif
+		jika tidak menyala
+			untuk pl dalam pasangan (espObjs) lakukan
+				lokal o=espObjs[pl]
+				pcall(function() o.hl:Destroy() end)
+				pcall(function() o.bb:Destroy() end)
+				espObjs[pl]=nil
+			akhir
+		akhir
+	akhir)
+	local colPlayer=P.colors("colPlayer","Warna semua pemain",5)
+	local colKiller=P.colors("colKiller","Warna killer",1)
+	P.info("Per pemain: kotak warna = ganti warna, ON/OFF = tampil/sembunyikan. ESP hanya muncul saat pemain di balik dinding.",52)
+	daftar lokal=P.kontainer()
+
+	fungsi lokal isKiller(pl)
+		kembalikan pl.Team~=nil dan pl.Team.Name=="Killer"
+	akhir
+	fungsi lokal teamHidden(pl)
+		kembalikan pl.Team~=nil dan HIDE_TEAMS[pl.Team.Name]==true
+	akhir
+	fungsi lokal effColor(pl)
+		jika espOver[pl] maka kembalikan PALETTE[espOver[pl]].c akhir
+		jika isKiller(pl) maka kembalikan PALETTE[colKiller.value].c end
+		kembalikan PALETTE[colPlayer.value].c
+	akhir
+
+	fungsi lokal paintRows()
+		untuk pl,r dalam pasangan(espRows) lakukan
+			lokal aktif=tidak mati[pl]
+			r.chip.BackgroundColor3=effColor(pl)
+			r.tog.Text=on dan "ON" atau "OFF"
+			r.tog.BackgroundColor3=on dan ACC atau OFFBG
+			r.tog.TextColor3=on dan BLACK atau DIM
+			r.name.Text=(espOver[pl] and "* " or "").pl.DisplayName
+		akhir
+	akhir
+
+	fungsi lokal buildList()
+		untuk _,c dalam ipairs(list:GetChildren()) lakukan
+			jika c:IsA("Frame") maka c:Destroy() end
+		akhir
+		espRows={}
+		untuk setiap pl dalam pasangan (espOver) lakukan jika pl bukan pl.Parent maka espOver[pl]=nil akhir akhir
+		untuk setiap pl dalam pasangan (espOff) lakukan jika pl.Parent tidak ada maka espOff[pl]=nil
+		untuk _,pl dalam ipairs(Players:GetPlayers()) lakukan
+			jika pl~=lp maka
+				baris lokal = baru("Bingkai", {Ukuran = UDim2.baru(1, 0, 0, 28), Warna Latar Belakang3 = BARIS}, daftar)
+				sudut(baris,6)
+				chip lokal = baru ("Tombol Teks", {
+					Posisi=UDim2.new(0,6,0.5,-10),Ukuran=UDim2.new(0,20,0,20),Teks="",WarnaTombolOtomatis=false,
+				},baris)
+				sudut(chip,5)
+				nama lokal=baru("Label Teks",{
+					BackgroundTransparency=1,Posisi=UDim2.new(0,32,0,0),Ukuran=UDim2.new(1,-96,1,0),
+					Font=FONT,Teks="",TeksWarna3=TXT,Ukuran Teks=12,
+					TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,
+				},baris)
+				lokal tog=baru("Tombol Teks",{
+					Posisi=UDim2.baru(1,-56,0.5,-10),Ukuran=UDim2.baru(0,50,0,20),
+					Font=FONTB,Teks="ON",UkuranTeks=12,WarnaTombolOtomatis=true,
+				},baris)
+				sudut(tog,5)
+				chip.MouseButton1Click:Connect(function()
+					lokal cur=espOver[pl] atau 0
+					espOver[pl]=(cur%#PALETTE)+1
+					melukisBaris()
+				akhir)
+				tog.MouseButton1Click:Connect(function()
+					espOff[pl]=(not espOff[pl]) or nil
+					melukisBaris()
+				akhir)
+				espRows[pl]={chip=chip,name=name,tog=tog}
+			akhir
+		akhir
+		melukisBaris()
+	akhir
+	pada Pemain(buildList)
+
+	fungsi lokal removeEsp(pl)
+		lokal o=espObjs[pl]
+		jika o maka
+			pcall(function() o.hl:Destroy() end)
+			pcall(function() o.bb:Destroy() end)
+			espObjs[pl]=nil
+		akhir
+	akhir
+
+	espParams lokal = RaycastParams.new()
+	espParams.FilterType=Enum.RaycastFilterType.Exclude
+	fungsi lokal isHidden(char,hrp)
+		Kamera lokal = ruang kerja.KameraSaatIni
+		jika bukan cam maka kembalikan false end
+		ign lokal={char}
+		Jika lp.Character ada, maka sisipkan (ign,lp.Character) ke dalam tabel.
+		espParams.FilterDescendantsInstances=ign
+		asal lokal=cam.CFrame.Posisi
+		titik lokal={hrp.Posisi}
+		kepala lokal=karakter:TemukanAnakPertama("Kepala")
+		Jika head ada, maka sisipkan poin pada tabel, head.Position
+		untuk _,pos dalam ipairs(points) lakukan
+			Jika workspace:Raycast(origin,pos-origin,espParams) tidak berfungsi, maka kembalikan false.
+		akhir
+		kembalikan nilai benar
+	akhir
+
+	fungsi lokal applyEsp(pl,myHrp)
+		karakter lokal=pl.Karakter
+		hrp lokal=char dan char:FindFirstChild("HumanoidRootPart")
+		jika tidak (espMaster dan bukan espOff[pl] dan bukan teamHidden(pl) dan hrp) maka
+			hapus Esp(pl)
+			kembali
+		akhir
+		lokal o=espObjs[pl]
+		jika o dan o.char~=char maka removeEsp(pl); o=nil end
+		jika tidak o maka
+			lokal hl=baru("Sorot",{
+				Adornee=char,FillTransparency=0.6,OutlineTransparency=0,
+				DepthMode=Enum.HighlightDepthMode.AlwaysOnTop,
+			},espFolder)
+			lokal bb=baru("BillboardGui",{
+				Adornee=hrp,Size=UDim2.new(0,120,0,18),
+				StudsOffset=Vector3.new(0,3.4,0),AlwaysOnTop=true,ResetOnSpawn=false,
+			},espFolder)
+			lokal lbl=baru("TextLabel",{
+				BackgroundTransparency=1,Size=UDim2.new(1,0,1,0),
+				Font=FONTB,Ukuran Teks=12,Transparansi TextStroke=0,4,
+			},bb)
+			o={hl=hl,bb=bb,lbl=lbl,char=char}
+			espObjs[pl]=o
+		akhir
+		kolom lokal=effColor(pl)
+		o.hl.FillColor=col
+		o.hl.OutlineColor=col
+		o.lbl.TextColor3=col
+		o.hl.Enabled=isHidden(char,hrp)
+		local dist=myHrp and (hrp.Position-myHrp.Position).Magnitude or 0
+		o.lbl.Text=string.format("%s [%dm]",pl.DisplayName,dist)
+	akhir
+
+	tugas.munculkan(fungsi())
+		sementara main.Parent lakukan
+			tugas.tunggu(0.08)
+			jika P.page.Visible maka paintRows() end
+			jika espMaster maka
+				myHrp lokal = getHRP(lp)
+				untuk _,pl dalam ipairs(Players:GetPlayers()) lakukan
+					jika pl~=lp maka terapkanEsp(pl,myHrp) selesai
+				akhir
+				untuk pl dalam pasangan (espObjs) lakukan
+					jika bukan pl.Parent maka hapusEsp(pl) end
+				akhir
+			akhir
+		akhir
+	akhir)
+akhir)
+
+-- =====================================================================
+-- KECEPATAN TAB (tanpa ON/OFF)
+-- =====================================================================
+bagian("KECEPATAN",fungsi()
+	lokal P=addTab("Kecepatan","KECEPATAN")
+	kecepatan lokalPct=100
+	Kecepatan dasar lokal=16
+	Mengerjakan
+		lokal c=lp.Karakter
+		lokal h=c dan c:TemukanAnakPertamaDariKelas("Humanoid")
+		jika h maka baseSpeed=h.WalkSpeed ​​end
+	akhir
+
+	local speedLbl=P.info("Kecepatan: 100%",24)
+	baris langkah lokal = P.baris(30)
+	P.rowLabel(stepRow,"Tambah/tap (%)")
+	Kotak langkah lokal = baru ("Kotak Teks", {
+		BackgroundColor3=OFFBG,Position=UDim2.new(1,-66,0.5,-11),Size=UDim2.new(0,60,0,22),
+		Font=FONT,Text="1",PlaceholderText="1",ClearTextOnFocus=false,
+		Warna Teks3=TXT,Ukuran Teks=13,
+	},stepRow)
+	sudut(stepBox,5)
+	lokal pmRow=P.row(34)
+	local slowBtn=new("TextButton",{
+		Warna Latar Belakang3=SISI2,Posisi=UDim2.baru(0,6,0.5,-12),Ukuran=UDim2.baru(0.5,-9,0,24),
+		Font=FONTB,Teks="-",WarnaTeks3=TXT,UkuranTeks=20,WarnaTombolOtomatis=true,
+	},pmRow)
+	sudut(tombol lambat,5)
+	local fastBtn=new("TextButton",{
+		BackgroundColor3=ACC,Position=UDim2.new(0.5,3,0.5,-12),Size=UDim2.new(0.5,-9,0,24),
+		Font=FONTB,Teks="+",WarnaTeks3=HITAM,UkuranTeks=20,WarnaTombolOtomatis=true,
+	},pmRow)
+	pojok(tombol cepat,5)
+
+	fungsi lokal getStep()
+		lokal v=tonumber(stepBox.Text)
+		jika v bukan atau v<=0 maka kembalikan 1
+		kembalikan math.clamp(v,0.1,100)
+	akhir
+	stepBox.FocusLost:Connect(function() stepBox.Text=tostring(getStep()) end)
+
+	fungsi lokal fmt(n) kembalikan tostring(math.floor(n*10+0.5)/10) selesai
+	fungsi lokal updateLbl()
+		speedLbl.Text=string.format("Kecepatan: %s%% (%.1f)",fmt(speedPct),baseSpeed*speedPct/100)
+	akhir
+	fungsi lokal applySpeed()
+		karakter lokal=lp.Karakter
+		lokal hum=char dan char:FindFirstChildOfClass("Humanoid")
+		jika hum maka hum.WalkSpeed=baseSpeed*speedPct/100 selesai
+	akhir
+	fungsi lokal setPct(v)
+		speedPct=math.clamp(tonumber(v) or 100,10,1000)
+		updateLbl()
+		applySpeed()
+		antreanSimpan()
+	akhir
+	fungsi lokal ubahKecepatan(delta) aturPct(speedPct+delta) selesai
+	updateLbl()
+
+	fungsi lokal holdRepeat(btn,sign)
+		gen lokal=0
+		btn.MouseButton1Down:Connect(function()
+			gen=gen+1
+			lokal my=gen
+			ubahKecepatan(tanda*dapatkanLangkah())
+			tugas.tunda(0.4,fungsi())
+				sementara gen==my lakukan
+					ubahKecepatan(tanda*dapatkanLangkah())
+					tugas.tunggu(0.06)
+				akhir
+			akhir)
+		akhir)
+		btn.InputEnded:Connect(function(i))
+			jika i.UserInputType==Enum.UserInputType.MouseButton1
+			atau i.UserInputType==Enum.UserInputType.Touch maka
+				gen=gen+1
+			akhir
+		akhir)
+		btn.MouseLeave:Connect(function() gen=gen+1 end)
+	akhir
+	tahanUlangi(tombol cepat,1)
+	tahanUlangi(tombol lambat,-1)
+
+	P.button("RESET KE NORMAL",function()
+		setPct(100)
+		notify("Kecepatan normal", "Kembali ke kecepatan asli")
+	akhir, Warna3.dariRGB(150,80,20))
+
+	kontrol.kecepatan={
+		default=100,
+		get=function() return speedPct end,
+		set=fungsi(v) setPct(v) end,
+	}
+
+	lacak(RunService.Heartbeat:Connect(function()
+		jika speedPct==100 maka kembalikan akhir
+		karakter lokal=lp.Karakter
+		lokal hum=char dan char:FindFirstChildOfClass("Humanoid")
+		jika hum maka
+			target lokal=baseSpeed*speedPct/100
+			Jika nilai absolut (kecepatan jalan manusia - target) > 0,01 maka kecepatan jalan manusia = target.
+		akhir
+	akhir))
+
+	lokal spHum=nil
+	tugas.munculkan(fungsi())
+		sementara main.Parent lakukan
+			tugas.tunggu(0.3)
+			lokal c=lp.Karakter
+			lokal h=c dan c:TemukanAnakPertamaDariKelas("Humanoid")
+			jika h dan h~=spHum maka
+				spHum=h
+				jika speedPct==100 maka
+					Kecepatan dasar = h.Kecepatan berjalan
+					updateLbl()
+				kalau tidak
+					applySpeed()
+				akhir
+			akhir
+		akhir
+	akhir)
+akhir)
+
+-- =====================================================================
+-- TAB AIM : SILENT AIM (arah + sentuh, ikut gerak killer/survivor)
+-- =====================================================================
+bagian("TUJUAN",fungsi()
+	lokal P=addTab("Bidik","BIDIK DIAM")
+	batas waktu tembakan lokal=4
+	Kecepatan lokal=120
+	Jangkauan lokal=200
+	Waktu_sentuh_lokal=1.5
+	Kata_komentar_lokal={"pukul","serang","tembak","tembak","tembakan","kerusakan","senjata","peluru","proyektil","sinar","bidik"}
+		"tusuk", "tebas", "ayunan", "lempar", "lempar", "tombak", "lembing", "lembing", "harpoon",
+		"pertarungan jarak dekat", "pukulan", "lepaskan", "luncurkan", "tusuk", "lempar", "serang"}
+	Kata kunci lokal HPWORDS={"kesehatan","hp","darah","darah","kehidupan","vitalitas"}
+
+	lokal S=G.AimT atau {on=false,pending={},hits=0,shots=0,last="-",role="SURVIVOR"}
+	G.AimT=S
+	S.on=false
+	S.pending={}
+	S.gen=(S.gen atau 0)+1
+	gen lokal=S.gen
+
+	fungsi lokal teamHas(pl,w)
+		lokal tn=pl.Team dan string.lower(pl.Team.Name)
+		jika tidak tn maka kembalikan false end
+		kembalikan string.find(tn,w,1,true)~=nil
+	akhir
+	Kata_komentar_lokal_DOWN={"down","knock","kenok","incap","faint","dead"}
+	fungsi lokal isDowned(ch)
+		jika tidak ch maka kembalikan false end
+		fungsi lokal hit(n)
+			lokal l=string.lower(n)
+			untuk _,w dalam ipairs(DOWN_WORDS) lakukan
+				Jika string.find(l,w,1,true) maka kembalikan true
+			akhir
+			kembalikan false
+		akhir
+		untuk k,v dalam pasangan (ch:GetAttributes()) lakukan
+			jika v==true dan hit(k) maka kembalikan true end
+		akhir
+		untuk _,d dalam ipairs(ch:GetDescendants()) lakukan
+			jika d:IsA("BoolValue") dan d.Value dan hit(d.Name) maka kembalikan true
+		akhir
+		kembalikan false
+	akhir
+	fungsi lokal isEnemy(pl)
+		jika pl==lp maka kembalikan false
+		lokal c=pl.Karakter
+		lokal h=c dan c:TemukanAnakPertamaDariKelas("Humanoid")
+		jika h atau h.Health<=0 maka kembalikan false
+		jika isDowned(c) maka kembalikan false end
+		Jika tim memiliki (lp, "killer") maka kembalikan bukan tim memiliki (pl, "killer")
+		kembalikan timHas(pl,"pembunuh")
+	akhir
+	fungsi lokal chestOf(ch)
+		kembalikan ch:FindFirstChild("UpperTorso") atau ch:FindFirstChild("Torso") atau ch:FindFirstChild("HumanoidRootPart")
+	akhir
+	fungsi lokal myHead()
+		lokal saya=lp.Karakter
+		lokal h=saya dan (saya:TemukanAnakPertama("Kepala") atau saya:TemukanAnakPertama("BagianAkarHumanoid"))
+		kembalikan h dan h.Posisi
+	akhir
+	fungsi lokal isShot(nama)
+		lokal l=string.lower(nama)
+		untuk _,w dalam ipairs(SHOT_WORDS) lakukan
+			Jika string.find(l,w,1,true) maka kembalikan true
+		akhir
+		kembalikan false
+	akhir
+	fungsi lokal weaponPart()
+		karakter lokal ch=lp.Character
+		jika tidak ch maka kembalikan nil akhir
+		alat lokal=ch:TemukanAnakPertamaDariKelas("Alat")
+		jika alat maka
+			lokal h=alat:TemukanAnakPertama("Handle")
+			jika h maka kembalikan h akhir
+		akhir
+		untuk _,d dalam ipairs(ch:GetDescendants()) lakukan
+			jika d:IsA("BasePart") maka
+				lokal l=string.lower(d.Nama)
+				jika string.find(l,"handle",1,true) atau string.find(l,"gun",1,true)
+				atau string.find(l,"weapon",1,true) atau string.find(l,"revolver",1,true)
+				atau string.find(l,"spear",1,true) atau string.find(l,"tombak",1,true) maka
+					kembali d
+				akhir
+			akhir
+		akhir
+		kembalikan ch:FindFirstChild("RightHand") atau ch:FindFirstChild("Right Arm") atau ch:FindFirstChild("HumanoidRootPart")
+	akhir
+	fungsi lokal isHpLabel(l)
+		l=string.lower(l)
+		Jika string.find(l,"max",1,true) maka kembalikan false
+		untuk _,w dalam ipairs(HPWORDS) lakukan
+			Jika string.find(l,w,1,true) maka kembalikan true
+		akhir
+		kembalikan false
+	akhir
+
+	fungsi lokal snapOf(ch)
+		lokal hum=ch:TemukanAnakPertamaDariKelas("Humanoid")
+		daftar lokal={}
+		Jika hum maka table.insert(list,{k="hum",o=hum,v=hum.Health,l="Health"}) end
+		untuk _,d dalam ipairs(ch:GetDescendants()) lakukan
+			jika (d:IsA("NumberValue") atau d:IsA("IntValue")) dan isHpLabel(d.Name) maka
+				table.insert(list,{k="val",o=d,v=d.Value,l=d.Name})
+			akhir
+		akhir
+		untuk k,v dalam pasangan (ch:GetAttributes()) lakukan
+			jika tipe(v)=="angka" dan isHpLabel(k) maka
+				table.insert(list,{k="attr",o=ch,a=k,v=v,l=k})
+			akhir
+		akhir
+		kembalikan {hum=hum,list=list,stunAttr=(ch:GetAttribute("IsStunned")==true)}
+	akhir
+
+	fungsi lokal evalShot(p)
+		lokal s=p.jepret
+		jika s.hum tidak ada atau s.hum.Parent tidak ada atau s.hum.Health <= 0 maka kembalikan "MATI"
+		untuk _,e dalam ipairs(s.list) lakukan
+			lokal ok,nv=pcall(fungsi()
+				jika ek=="hum" maka kembalikan eoHealth end
+				jika ek=="val" maka kembalikan eoValue
+				kembalikan eo:GetAttribute(ea)
+			akhir)
+			jika ok dan tipe(nv)=="number" dan nv<ev maka kembalikan el end
+		akhir
+		Jika p.ch:GetAttribute("IsStunned")==true dan s.stunAttr tidak terpenuhi maka kembalikan "IsStunned"
+		kembalikan nilai nil
+	akhir
+
+	fungsi lokal touchBurst(tgt,wp)
+		lokal t0=os.clock()
+		koneksi lokal
+		conn=RunService.Heartbeat:Connect(function()
+			jika os.clock()-t0>=TOUCH_TIME atau tidak tgt.Parent maka
+				jika terhubung maka terhubung:Putuskan sambungan()
+				kembali
+			akhir
+			pcall(fungsi())
+				firetouchinterest(tgt,wp,0)
+				firetouchinterest(tgt,wp,1)
+			akhir)
+		akhir)
+		jalur(koneksi)
+	akhir
+
+	fungsi lokal aimPos(tp)
+		posisi lokal=tp.Posisi
+		lokal o=myHead() atau pos
+		lokal t=math.min((pos-o).Magnitudo/KECEPATAN,2)
+		kecepatan linier lokal v=tp.AssemblyLinearVelocity
+		kembalikan pos+Vector3.new(vX,0,vZ)*t
+	akhir
+
+	fungsi lokal arcDir(origin,target,speed)
+		lokal g=ruang kerja.Gravitasi
+		lokal d=target-origin
+		local flat=Vector3.new(dX,0,dZ)
+		dx lokal = datar.Magnitudo
+		jika dx<0.5 atau speed<=0 maka kembalikan nil
+		v2 lokal = kecepatan * kecepatan
+		disk lokal = v2 * v2 - g * (g * dx * dx + 2 * dY * v2)
+		jika disc<0 maka kembalikan nil
+		tanT lokal = (v2 - math.sqrt(disc)) / (g*dx)
+		cosT lokal = 1/math.sqrt(1+tanT*tanT)
+		sinT lokal = tanT * cosT
+		kembalikan (flat.Unit*cosT)+Vector3.new(0,sinT,0)
+	akhir
+
+	fungsi lokal onShot(self,n,args)
+		jika S.on tidak aktif maka kembalikan false
+		nama lokal=diri sendiri.Nama
+		jika tipe(nama)~="string" atau bukan isShot(nama) maka kembalikan false
+		lokal tp,tch=S.tp,S.tch
+		jika tidak (tp dan tp.Parent dan tch dan tch.Parent) maka kembalikan false
+		asal lokal=myHead() atau tp.Posisi
+		posisi lokal = aimPos(tp)
+		local dirArc=(S.role=="KILLER") and arcDir(origin,pos,S.spear) or nil
+		lokal berubah=false
+		untuk i=1,n lakukan
+			lokal v=args[i]
+			lokal t=tipe(v)
+			jika t=="Vector3" maka
+				magnitudo lokal = v.Magnitudo
+				jika mag>0.5 dan mag<1.5 maka
+					lokal d=pos-asal
+					Jika dirArc maka args[i]=dirArc; changed=true elseif d.Magnitude>0.1 maka args[i]=d.Unit; changed=true end
+				jika (v-origin).Magnitudo>6 maka
+					argumen[i]=pos; diubah=benar
+				akhir
+			jika t=="CFrame" maka
+				lokal p=v.Posisi
+				Jika dirArc ada, maka args[i] = CFrame.lookAt(origin, origin + dirArc * 10) elseif (p - origin).Magnitude <= 6 maka args[i] = CFrame.lookAt(p, pos) else args[i] = CFrame.new(pos) end
+				berubah=benar
+			akhir
+		akhir
+		local wp=weaponPart()
+		jika wp dan firetouchinterest dan (tp.Position-origin).Magnitude<=REACH maka
+			sentuhBurst(tp,wp)
+		akhir
+		jika tch:FindFirstChildOfClass("Humanoid") maka
+			S.shots = S.shots + 1
+			table.insert(S.pending,{ch=tch,snap=snapOf(tch),t=os.clock()})
+		akhir
+		pengembalian diubah
+	akhir
+	S.handle=onShot
+
+	fungsi lokal installHook()
+		Jika G.AimHooked maka kembalikan true
+		jika tidak (hookmetamethod dan newcclosure dan getnamecallmethod dan checkcaller) maka kembalikan false end
+		lokal ok=pcall(fungsi()
+			penduduk setempat yang sudah tua
+			lama=hookmetamethod(game,"__namecall",newcclosure(function(self,...)
+				metode lokal=getnamecallmethod()
+				lokal st=G.AimT
+				jika (metode=="FireServer" atau metode=="InvokeServer") dan tidak memeriksa pemanggil()
+				dan st dan st.on dan st.handle lalu
+					lokal n=pilih("#",...)
+					argumen lokal={...}
+					okp lokal, berubah = pcall(st.handle, diri sendiri, n, args)
+					jika setnamecallmethod maka setnamecallmethod(method) end
+					jika okp dan diubah maka
+						kembalikan nilai lama(diri sendiri,table.unpack(args,1,n))
+					akhir
+				akhir
+				kembalikan yang lama(diri sendiri,...)
+			akhir))
+		akhir)
+		G.AimHooked=ok
+		kembali oke
+	akhir
+
+	tugas.munculkan(fungsi())
+		selama main.Parent dan S.gen==gen lakukan
+			hrp lokal = getHRP(lp)
+			asal lokal=myHead() atau (hrp dan hrp.Position)
+			terbaik lokal, bd=nil, nil
+			jika asalnya maka
+				untuk _,pl dalam ipairs(Players:GetPlayers()) lakukan
+					jika isEnemy(pl) dan pl.Character maka
+						bagian lokal = dada dari (pl.Character)
+						jika sebagian maka
+							d lokal = (posisi bagian - asal).Magnitudo
+							jika d<=REACH dan (bukan bd atau d<bd) maka best,bd=pl,d end
+						akhir
+					akhir
+				akhir
+			akhir
+			S.tch=terbaik dan terbaik.Karakter atau nil
+			S.tp=best and chestOf(best.Character) or nil
+			S.dist=bd
+			S.role=teamHas(lp,"killer") and "KILLER" or "SURVIVOR"
+			tugas.tunggu(0.15)
+		akhir
+	akhir)
+
+	tugas.munculkan(fungsi())
+		selama main.Parent dan S.gen==gen lakukan
+			tugas.tunggu(0.05)
+			lokal sekarang=os.clock()
+			lokal i=1
+			sementara i<=#S.pending lakukan
+				lokal p=S.tertunda[i]
+				lokal ok, mengapa=pcall(evalShot,p)
+				Jika oke, lalu mengapa?
+					tabel.hapus(S.tertunda,i)
+					S.hits = S.hits + 1
+					S.last=mengapa
+					untuk _,q dalam ipairs(S.pending) lakukan
+						Jika q.ch == p.ch maka q.snap = snapOf(p.ch)
+					akhir
+				jika sekarang-pt>SHOT_TIMEOUT maka
+					tabel.hapus(S.tertunda,i)
+				kalau tidak
+					i=i+1
+				akhir
+			akhir
+		akhir
+	akhir)
+
+	-- ===== GARIS MERAH KE DADA =====
+	pcall(function() RunService:UnbindFromRenderStep("GodAimLine") end)
+	Mengerjakan
+		lokal o=ruang kerja:TemukanAnakPertama("GarisPembunuhTuhan")
+		jika o maka pcall(function() o:Destroy() end) end
+	akhir
+	baris lokalP=nil
+	fungsi lokal ensureLine()
+		jika lineP dan lineP.Parent maka kembalikan lineP
+		lineP=Instance.new("Part")
+		lineP.Name="GodKillerLine"
+		lineP.Anchored=true
+		lineP.CanCollide=false
+		lineP.CanQuery=false
+		lineP.CanTouch=false
+		lineP.CastShadow=false
+		barisP.Material=Enum.Material.Neon
+		lineP.Color=Color3.fromRGB(255,0,0)
+		lineP.Size=Vector3.new(0.12,0.12,1)
+		garisP.Transparansi=1
+		garisP.Induk=ruang kerja
+		kembali ke barisP
+	akhir
+	local lineParams=RaycastParams.new()
+	lineParams.FilterType=Enum.RaycastFilterType.Exclude
+	fungsi lokal visibleTo(tp,tch,o)
+		lokal ign={tch}
+		Jika lp.Character ada, maka sisipkan (ign,lp.Character) ke dalam tabel.
+		lineParams.FilterDescendantsInstances=ign
+		kembalikan ruang kerja:Raycast(o,tp.Position-o,lineParams)==nil
+	akhir
+	RunService:BindToRenderStep("GodAimLine",Enum.RenderPriority.Camera.Value+2,function()
+		pcall(fungsi())
+			lokal tp,tch=S.tp,S.tch
+			lokal o=myHead()
+			local show=S.line and S.on and tp and tp.Parent and tch and tch.Parent and o
+			jika tidak (tampilkan dan terlihat oleh (tp,tch,o)) maka
+				Jika lineP dan lineP.Parent maka lineP.Transparency=1
+				kembali
+			akhir
+			lokal p=tp.Posisi
+			panjang lokal=(po).Magnitudo
+			jika panjang < 0,5 maka kembalikan akhir
+			local ln=ensureLine()
+			ln.Size=Vector3.new(0.12,0.12,len)
+			ln.CFrame = CFrame.new(o, p) * CFrame.new(0, 0, -len/2)
+			ln.Transparansi=0.1
+		akhir)
+	akhir)
+
+	-- ===== kontrol & tampilan =====
+	P.toggle("silentLine","GARIS MERAH KE DADA",false,fungsi(aktif)
+		S.line=on
+		jika tidak aktif dan lineP dan lineP.Parent maka lineP.Transparency=1 end
+	akhir)
+	S.spear=S.spear atau 100
+	lokal spearRow=P.row(34)
+	local spearTxt=P.rowLabel(spearRow,"Tombak: "..S.spear)
+	fungsi lokal setSpear(v)
+		S.spear=math.clamp(math.floor(v/10+0.5)*10,40,250)
+		spearTxt.Text="Tombak: "..S.spear
+		antreanSimpan()
+	akhir
+	local spMinus=new("TextButton",{BackgroundColor3=SIDE2,Position=UDim2.new(1,-120,0.5,-11),Size=UDim2.new(0,50,0,22),
+		Font=FONTB,Text="-",TextColor3=TXT,TextSize=16,AutoButtonColor=true},spearRow)
+	sudut(spMinus,5)
+	local spPlus=new("TextButton",{BackgroundColor3=ACC,Position=UDim2.new(1,-62,0.5,-11),Size=UDim2.new(0,50,0,22),
+		Font=FONTB,Text="+",TextColor3=BLACK,TextSize=16,AutoButtonColor=true},spearRow)
+	sudut(spPlus,5)
+	spMinus.MouseButton1Click:Connect(function() setSpear(S.spear-10) end)
+	spPlus.MouseButton1Click:Connect(function() setSpear(S.spear+10) end)
+	controls.spearSpeed={default=100,get=function() return S.spear end,set=function(v) setSpear(v) end}
+	setSpear(S.spear)
+	status lokalLbl=P.info("OFF",40)
+	local statsLbl=P.info("Kena 0 / 0 tembakan",24)
+
+	P.toggle("silentAim","SILENT AIM",false,function(on)
+		S.on=on
+		jika aktif dan bukan installHook() maka
+			notify("Silent aim", "Hook gagal / pelaksana tidak mendukung")
+		akhir
+	akhir)
+
+	P.button("RESET STATISTIK",function()
+		S.hits=0
+		S.shots=0
+		S.last="-"
+		S.pending={}
+	akhir,SISI2)
+
+	tugas.munculkan(fungsi())
+		selama main.Parent dan S.gen==gen lakukan
+			jika S.on maka
+				jika S.tch maka
+					statusLbl.Text=string.format("ON | %s | %s | %dm | kena terakhir: %s",
+						S.role,S.tch.Name,math.floor(S.dist or 0),tostring(S.last))
+				kalau tidak
+					statusLbl.Text="ON | "..S.role.." | tidak ada musuh dalam jarak 200 m"
+				akhir
+			kalau tidak
+				statusLbl.Text="OFF | "..(S.role atau "SURVIVOR")
+			akhir
+			statsLbl.Text=string.format("Kena %d / %d tembakan",S.hits,S.shots)
+			tugas.tunggu(0.2)
+		akhir
+	akhir)
+akhir)
+
+-- =====================================================================
+-- TAB LAMPU
+-- =====================================================================
+bagian("LAMPU",fungsi()
+	lokal P=addTab("Lampu","LAMPU")
+	lampu lokal menyala = salah
+	lampu lokal level=3
+	local lampSaved=nil
+	local lampAtm=nil
+	lampu lokalCC=nil
+
+	local lvlLbl=P.info("Terang : 3/5",24)
+	lokal pmRow=P.row(34)
+	lokal minus = baru ("Tombol Teks", {
+		Warna Latar Belakang3=SISI2,Posisi=UDim2.baru(0,6,0.5,-12),Ukuran=UDim2.baru(0.5,-9,0,24),
+		Font=FONTB,Teks="-",WarnaTeks3=TXT,UkuranTeks=20,WarnaTombolOtomatis=true,
+	},pmRow)
+	sudut(minus,5)
+	local plus=new("TextButton",{
+		BackgroundColor3=ACC,Position=UDim2.new(0.5,3,0.5,-12),Size=UDim2.new(0.5,-9,0,24),
+		Font=FONTB,Teks="+",WarnaTeks3=HITAM,UkuranTeks=20,WarnaTombolOtomatis=true,
+	},pmRow)
+	sudut(plus,5)
+
+	fungsi lokal applyLamp()
+		lokal lv=lampLevel
+		amb lokal=math.min(255,70+lv*30)
+		Pencahayaan.Kecerahan=1+lv
+		Pencahayaan.WaktuJam=14
+		Pencahayaan.AkhirKabut=1000000
+		Pencahayaan.BayanganGlobal=false
+		Pencahayaan.Ambient=Warna3.dariRGB(amb,amb,amb)
+		Pencahayaan.OutdoorAmbient=Warna3.fromRGB(amb,amb,amb)
+		pcall(function() Lighting.ExposureCompensation=lv*0.4 end)
+		lokal atm=Pencahayaan:TemukanAnakPertamaDariKelas("Atmosfer")
+		jika atm maka atm.Density=0; atm.Haze=0 end
+		jika bukan lampCC atau lampCC.Parent~=Lighting maka
+			jika lampCC maka pcall(function() lampCC:Destroy() end) end
+			lampCC=new("Efek Koreksi Warna",{},Pencahayaan)
+		akhir
+		lampCC.Kecerahan=0.03*lv
+		lampCC.Kontras=0,05
+	akhir
+
+	fungsi lokal setLevel(v)
+		lampLevel=math.clamp(math.floor(tonumber(v) or 3),1,5)
+		lvlLbl.Text=string.format("Tingkat: %d / 5",lampLevel)
+		jika lampOn maka terapkanLamp()
+		antreanSimpan()
+	akhir
+	minus.MouseButton1Click:Connect(function() setLevel(lampLevel-1) end)
+	plus.MouseButton1Click:Connect(function() setLevel(lampLevel+1) end)
+	controls.lampLevel={default=3,get=function() return lampLevel end,set=function(v) setLevel(v) end}
+
+	P.toggle("lamp","LAMPU",false,fungsi(on)
+		lampu menyala=nyala
+		jika saat itu
+			lampSaved={
+				Kecerahan = Pencahayaan.Kecerahan, Waktu Jam = Pencahayaan.Waktu Jam,
+				FogEnd=Lighting.FogEnd,GlobalShadows=Lighting.GlobalShadows,
+				Ambient=Pencahayaan.Ambient,OutdoorAmbient=Pencahayaan.OutdoorAmbient,
+			}
+			pcall(function() lampSaved.ExposureCompensation=Lighting.ExposureCompensation end)
+			lokal atm=Pencahayaan:TemukanAnakPertamaDariKelas("Atmosfer")
+			lampAtm=atm dan {obj=atm,Density=atm.Density,Haze=atm.Haze} atau nil
+			terapkanLampu()
+			notify("LAMPU ON","Layar jadi terang")
+		kalau tidak
+			jika lampSaved maka
+				untuk k,v dalam pasangan (lampSaved) lakukan pcall(fungsi() Lighting[k]=v end) end
+			akhir
+			jika lampAtm dan lampAtm.obj dan lampAtm.obj.Parent maka
+				lampAtm.obj.Density=lampAtm.Density
+				lampAtm.obj.Haze=lampAtm.Haze
+			akhir
+			jika lampCC maka pcall(function() lampCC:Destroy() end); lampCC=nil end
+			notify("LAMPU OFF", "Pencahayaan normal")
+		akhir
+	akhir)
+
+	tugas.munculkan(fungsi())
+		sementara main.Parent lakukan
+			tugas.tunggu(1)
+			jika lampOn maka terapkanLamp()
+		akhir
+	akhir)
+akhir)
+
+-- =====================================================================
+-- PEMBANGKIT TAB
+-- =====================================================================
+bagian("GENERATOR",fungsi()
+	local P=addTab("Generator","AUTO GENERATOR")
+	lokal pg=lp:TungguAnak("PlayerGui")
+
+	-- ===== PENGATURAN =====
+	mode lokal="mati" -- mati / sukses / instan
+	local RANGE=G.GodZone atau {116,159} -- zona putih (mode sukses), bisa digeser & dikalibrasi
+	G.GodZone=RANGE
+	INSTANT_TARGET lokal=109
+	lokal INSTANT_DELAY=0.02
+	lokal COBA LAGI SETELAH=0.25
+	lokal EXTRA_LEAD=0.02
+	FLEE_DIST lokal=45
+	lokal FLEE_COOLDOWN=2
+	lokal SCAN_EVERY=4
+	lokal STAY_NO_PROMPT=4
+	Kata_PCT_lokal={"kemajuan","persentase","perbaikan","biaya"}
+	lokal LABU_COL=Color3.fromRGB(255,140,0)
+
+	-- =================================================================
+	-- PEMERIKSAAN KETERAMPILAN
+	-- =================================================================
+	cache lokal={t=0}
+	fungsi lokal alive(o) mengembalikan o~=nil dan o.Parent~=nil akhir
+	fungsi lokal refreshObjs()
+		lokal sekarang=os.clock()
+		jika now-cache.t<0.1 maka kembalikan end
+		cache.t=sekarang
+		GUI lokal=pg:TemukanAnakPertama("SkillCheckPromptGui")
+		cache.gui=gui
+		cache.line=gui dan gui:FindFirstChild("Line",true)
+		cache.goal=gui dan gui:FindFirstChild("Goal",true)
+		gerombolan lokal=pg:TemukanAnakPertama("Gerombolan-penyintas")
+		cache.action=mob dan mob:FindFirstChild("action",true)
+	akhir
+	fungsi lokal getObjs()
+		jika tidak (cache.gui dan cache.line dan cache.goal dan cache.action) tidak aktif maka
+			refreshObjs()
+		akhir
+		kembalikan cache.gui, cache.line, cache.goal, cache.action
+	akhir
+	fungsi lokal isShown(o)
+		sementara o dan o~=pg lakukan
+			Jika o:IsA("GuiObject") dan o.Visible tidak ada, maka kembalikan false.
+			Jika o:IsA("ScreenGui") dan o.Enabled tidak ada maka kembalikan false.
+			o=o.Orang Tua
+		akhir
+		kembalikan nilai benar
+	akhir
+
+	fungsi lokal fireAll(signalGetter)
+		ok1 lokal,sig=pcall(signalGetter)
+		jika tidak ok1 atau tidak sig maka kembalikan false end
+		lokal selesai=false
+		jika mendapatkan koneksi maka
+			lokal ok2,list=pcall(getconnections,sig)
+			jika ok2 dan daftar maka
+				untuk _,c dalam ipairs(list) lakukan
+					pcall(function() c:Fire() end)
+					selesai=benar
+				akhir
+			akhir
+		akhir
+		jika tidak dilakukan dan sinyal api maka
+			selesai=pcall(sinyal api,sig)
+		akhir
+		pengembalian selesai
+	akhir
+	fungsi lokal pressSignal(btn)
+		fireAll(function() return btn.MouseButton1Down end)
+		fireAll(function() return btn.MouseButton1Up end)
+		fireAll(function() return btn.MouseButton1Click end)
+		fireAll(function() return btn.Activated end)
+	akhir
+	fungsi lokal pressClick(btn)
+		VIM lokal=game:GetService("VirtualInputManager")
+		lokal p=btn.PosisiAbsolut+btn.UkuranAbsolut/2
+		local inset=GuiService:GetGuiInset()
+		lokal x,y=pX,p.Y+inset.Y
+		pcall(fungsi())
+			VIM:SendMouseButtonEvent(x,y,0,true,game,0)
+			VIM:SendMouseButtonEvent(x,y,0,false,game,0)
+		akhir)
+	akhir
+	fungsi lokal pressAction(btn)
+		jika bukan btn maka kembalikan akhir
+		tekanSignal(btn)
+		tekanKlik(btn)
+	akhir
+
+	fungsi lokal relAngle(garis, tujuan) kembalikan (garis.Rotasi-tujuan.Rotasi)%360 akhir
+	fungsi lokal inRange(x,r) mengembalikan x>=r[1] dan x<=r[2] berakhir
+	fungsi lokal melintasi(a,b,m)
+		d lokal = (b - a + 180)%360 - 180
+		k lokal=(m-a+180)%360-180
+		jika d>=0 maka kembalikan k>=0 dan k<=d selesai
+		kembalikan k<=0 dan k>=d
+	akhir
+	fungsi lokal getLead()
+		ping lokal=0
+		pcall(function() ping=lp:GetNetworkPing() end)
+		kembalikan ping+EXTRA_LEAD
+	akhir
+
+	-- kalibrasi: catat posisi jarum setiap kali KAMU menekan action sendiri
+	kalibrasi lokal={aktif=false,nilai={},terkait=nil}
+	fungsi lokal hookAction(action)
+		jika action atau calib.hooked tidak sama dengan action maka kembalikan end
+		calib.hooked=action
+		aksi.TombolMouse1Down:Hubungkan(fungsi())
+			jika kalibrasi tidak aktif maka kembalikan akhir
+			lokal _,garis,tujuan=getObjs()
+			Jika garis dan gawang ada, maka masukkan nilai kalibrasi ke dalam tabel (relAngle(garis, gawang)).
+		akhir)
+	akhir
+
+	lokal dipecat=false
+	lokal firedAt=0
+	lokal seenAt=nil
+	local lastStatus="mati"
+	lokal lastRel,lastT=nil,nil
+
+	fungsi lokal langkah()
+		GUI lokal, baris, tujuan, aksi = getObjs()
+		jika ada aksi maka kaitkan Aksi(aksi) berakhir
+		jika bukan GUI maka
+			lastStatus="SkillCheckPromptGui tidak ada"
+		jika bukan garis atau bukan gawang maka
+			lastStatus="Garis/Gol tidak ketemu"
+		jika tidak ada tindakan maka
+			lastStatus="tombol tindakan tidak ketemu"
+		jika tidak ditampilkan (baris) maka
+			lastStatus="skillcheck belum muncul"
+		kalau tidak
+			lastStatus=string.format("AKTIF rel=%.1f",relAngle(garis,tujuan))
+		akhir
+
+		jika tidak (gui dan baris dan tujuan dan tindakan) atau tidak ditampilkan (baris) maka
+			dipecat=false
+			seenAt=nil
+			lastRel,lastT=nil,nil
+			kembali
+		akhir
+
+		-- saat kalibrasi, auto press dimatikan (kamu yang menekan)
+		Jika kalibrasi aktif maka kembalikan akhir
+
+		lokal sekarang=os.clock()
+		rel lokal = relAngle(garis, tujuan)
+		kecepatan lokal=0
+		jika lastRel dan lastT dan now>lastT maka
+			lokal d=(rel-lastRel+180)%360-180
+			kecepatan = d/(sekarang - terakhirT)
+		akhir
+		lastRel,lastT=rel,now
+
+		jika dipecat maka
+			jika now-firedAt>RETRY_AFTER maka
+				dipecat=false
+				seenAt=nil
+			kalau tidak
+				kembali
+			akhir
+		akhir
+
+		jika mode=="instan" maka
+			seenAt=seenAt atau sekarang
+			jika now-seenAt>=INSTANT_DELAY maka
+				fired=true
+				firedAt=now
+				Garis.Rotasi = tujuan.Rotasi + TARGET_INSTAN
+				tugas.munculkan(fungsi())
+					RunService.Heartbeat:Wait()
+					Garis.Rotasi = tujuan.Rotasi + TARGET_INSTAN
+					tekanAksi(aksi)
+				akhir)
+			akhir
+		kalau tidak
+			titik tengah lokal = (RANGE[1] + RANGE[2]) / 2
+			prediksi lokal = (rel + kecepatan * getLead()) % 360
+			jika dalam rentang (rel,RANGE) atau melintasi (rel,predicted,mid) maka
+				fired=true
+				firedAt=now
+				tekanAksi(aksi)
+			akhir
+		akhir
+	akhir
+
+	fungsi lokal safeStep()
+		jika mode=="off" dan bukan calib.on maka
+			lastStatus="mati"
+			kembali
+		akhir
+		lokal okS,eS=pcall(langkah)
+		jika tidak okS maka lastStatus="error: "..tostring(eS) end
+	akhir
+	RunService:BindToRenderStep("DeltaPart5_SC",Enum.RenderPriority.Last.Value,safeStep)
+	track(RunService.Heartbeat:Connect(safeStep))
+
+	-- =================================================================
+	-- GENERATOR DATA / PALET
+	-- =================================================================
+	gen lokal, teman={},{}
+	local skip=setmetatable({},{__mode="k"})
+	local pctCache=setmetatable({},{__mode="k"})
+	local promptCache=setmetatable({},{__mode="k"})
+	pemindaian lokal=false
+	pemindaian terakhir lokal=0
+
+	fungsi lokal memiliki(n,w)
+		kembalikan string.find(string.lower(n),w,1,true)~=nil
+	akhir
+	fungsi lokal isPalletName(n)
+		lokal l=string.lower(n)
+		Jika string.find(l,"box",1,true) atau string.find(l,"crate",1,true) atau string.find(l,"container",1,true) maka
+			kembalikan false
+		akhir
+		kembalikan string.find(l,"pallet",1,true)~=nil atau string.find(l,"palet",1,true)~=nil
+	akhir
+	fungsi lokal scanMap()
+		jika melakukan pemindaian maka kembali ke akhir
+		pemindaian=benar
+		Pemindaian terakhir = os.clock()
+		pcall(fungsi())
+			lokal g,p={},{}
+			lokal i=0
+			untuk _,d dalam ipairs(workspace:GetDescendants()) lakukan
+				i=i+1
+				jika i%1500==0 maka task.wait() end
+				jika d:IsA("Model") dan bukan Players:GetPlayerFromCharacter(d) maka
+					lokal isG=nameHas(d.Name,"generator")
+					lokal isP=(bukan isG) dan isPalletName(d.Name)
+					jika isG atau isP maka
+						lokal par=d.Parent
+						lokal bersarang=par dan par:IsA("Model")
+							dan (nameHas(par.Name,"generator") atau nameHas(par.Name,"pallet"))
+						jika tidak bersarang maka
+							Jika isG maka masukkan tabel(g,d) else masukkan tabel(p,d)
+						akhir
+					akhir
+				akhir
+			akhir
+			gens,pals=g,p
+		akhir)
+		pemindaian=false
+	akhir
+	fungsi lokal mainPart(m)
+		kembalikan m.PrimaryPart atau m:FindFirstChildWhichIsA("BasePart",true)
+	akhir
+	fungsi lokal genPos(g)
+		lokal ok1,cf=pcall(fungsi() kembalikan g:GetPivot() akhir)
+		jika ok1 dan cf maka kembalikan cf.Posisi berakhir
+		lokal p=bagian utama(g)
+		kembalikan p dan p.Position atau Vector3.zero
+	akhir
+
+	----- baca persen -----
+	fungsi lokal isPctName(n)
+		lokal l=string.lower(n)
+		untuk _, buruk dalam ipairs({"maks","kecepatan","laju","waktu","total","keterampilan"}) lakukan
+			Jika string.find(l,bad,1,true) maka kembalikan false
+		akhir
+		untuk _,w dalam ipairs(PCT_WORDS) lakukan
+			Jika string.find(l,w,1,true) maka kembalikan true
+		akhir
+		kembalikan false
+	akhir
+	fungsi lokal findPctSource(g)
+		fungsi lokal checkAttrs(inst)
+			untuk nama, nilai dalam pasangan (inst:GetAttributes()) lakukan
+				jika tipe(val)=="angka" dan isPctName(nama) maka
+					kembalikan {kind="attr",inst=inst,name=name,maxSeen=0,frac=false}
+				akhir
+			akhir
+		akhir
+		lokal s=checkAttrs(g)
+		jika s maka kembalikan s akhir
+		untuk _,d dalam ipairs(g:GetDescendants()) lakukan
+			jika (d:IsA("NumberValue") atau d:IsA("IntValue")) dan isPctName(d.Name) maka
+				kembalikan {kind="val",inst=d,name=d.Name,maxSeen=0,frac=false}
+			akhir
+			jika tidak d:IsA("BasePart") maka
+				s=checkAttrs(d)
+				jika s maka kembalikan s akhir
+			akhir
+		akhir
+		kembalikan nilai nil
+	akhir
+	fungsi lokal readPct(g)
+		lokal c=pctCache[g]
+		jika bukan c atau (bukan c.src dan os.clock()-c.tried>5)
+		atau (c.src dan bukan c.src.inst.Parent) maka
+			c={src=findPctSource(g),tried=os.clock()}
+			pctCache[g]=c
+		akhir
+		lokal src=c.src
+		jika src tidak ada maka kembalikan nil,nil end
+		lokal v
+		Jika src.kind == "val", maka v = src.inst.Value, jika tidak, v = src.inst:GetAttribute(src.name)
+		jika tipe(v)~="angka" maka kembalikan nil,nil
+		jika v > src.maxSeen maka src.maxSeen = v
+		jika v>0 dan v<1 maka src.frac=true end
+		PC lokal
+		jika src.maxSeen>1 maka pct=v
+		jika src.frac maka pct=v*100
+		jika tidak pct=v akhir
+		kembalikan math.clamp(pct,0,100),src.name
+	akhir
+	fungsi lokal isDone(g)
+		lokal p=readPct(g)
+		kembalikan p~=nil dan p>=99.5
+	akhir
+	fungsi lokal fmtPct(p)
+		kembalikan p dan string.format("%d%%",math.floor(p+0.5)) atau "?%"
+	akhir
+
+	----- perbaikan segera -----
+	fungsi lokal getPrompts(g)
+		lokal c=promptCache[g]
+		jika c dan os.clock()-ct<2 maka kembalikan c.list end
+		daftar lokal={}
+		untuk _,d dalam ipairs(g:GetDescendants()) lakukan
+			Jika d:IsA("ProximityPrompt") maka sisipkan tabel (list,d)
+		akhir
+		promptCache[g]={t=os.clock(),list=list}
+		kembali ke daftar
+	akhir
+	fungsi lokal promptPos(p,g)
+		lokal par=p.Induk
+		jika par dan par:IsA("Attachment") maka kembalikan par.WorldPosition
+		jika par dan par:IsA("BasePart") lalu kembalikan par.Position end
+		kembalikan genPos(g)
+	akhir
+
+	-- ----- cari tempat berdiri -----
+	spotParams lokal = RaycastParams.new()
+	spotParams.FilterType=Enum.RaycastFilterType.Exclude
+	pcall(function() spotParams.RespectCanCollide=true end)
+	tumpang tindih lokal = OverlapParams.new()
+	overlap.FilterType=Enum.RaycastFilterType.Exclude
+
+	fungsi lokal findSpot(g)
+		lokal gp=genPos(g)
+		lokal ps=getPrompts(g)
+		basis lokal=ps[1] dan promptPos(ps[1],g) atau gp
+		lokal ign={g}
+		Jika lp.Character ada, maka sisipkan (ign,lp.Character) ke dalam tabel.
+		spotParams.FilterDescendantsInstances=ign
+		overlap.FilterDescendantsInstances=ign
+		hrp lokal = getHRP(lp)
+		lokal myPos=hrp dan hrp.Position atau basis
+		local maxDist=(ps[1] dan ps[1].MaxActivationDistance atau 10)-1
+		Terbaik lokal, skor terbaik
+		skor longgar lokal, longgar
+		untuk _,r dalam ipairs({3.5,5,2.5}) ​​lakukan
+			untuk k=0,11 lakukan
+				lokal a=(k/12)*math.pi*2
+				titik lokal = Vector3.baru(basis.X + math.cos(a)*r, basis.Y, basis.Z + math.sin(a)*r)
+				local hit=workspace:Raycast(spot+Vector3.new(0,5,0),Vector3.new(0,-16,0),spotParams)
+				jika hit dan hit.Normal.Y>0.6 maka
+					posisi lokal = hit.Posisi + Vector3.baru(0, 3, 0)
+					jika (stand-base).Magnitude<=maxDist maka
+						headRoom lokal = workspace:Raycast(hit.Position + Vector3.new(0, 0.5, 0), Vector3.new(0, 5.5, 0), spotParams)
+						lokal ditempati=false
+						bagian lokal=ruang kerja:DapatkanBatasBagianDalamKotak(CFrame.new(stand),Vector3.new(2.5,4,2.5),overlap)
+						untuk _,pt dalam ipairs(parts) lakukan
+							jika pt.CanCollide maka occupied=true break end
+						akhir
+						jika tidak ada ruang kepala dan tidak ditempati maka
+							skor lokal = (stand - myPos).Magnitudo + r * 0,5
+							lokal toGen=Vector3.baru(base.X,stand.Y,base.Z)-stand
+							lokal diblokir=ruang kerja:Raycast(stand,toGen,spotParams)
+							jika tidak diblokir maka
+								jika bukan bestScore atau score<bestScore maka best,bestScore=stand,score end
+							akhir
+							jika looseScore tidak ada atau score<looseScore maka loose,looseScore=stand,score end
+						akhir
+					akhir
+				akhir
+			akhir
+		akhir
+		pos lokal = terbaik atau longgar
+		jika tidak pos maka kembalikan CFrame.new(base+Vector3.new(0,2,3)) selesai
+		return CFrame.new(pos, Vector3.new(base.X, pos.Y, base.Z))
+	akhir
+
+	fungsi lokal tpTo(g)
+		hrp lokal = getHRP(lp)
+		jika tidak hrp maka kembalikan akhir
+		lokal ok1,cf=pcall(findSpot,g)
+		jika tidak ok1 atau tidak cf maka cf=CFrame.new(genPos(g)+Vector3.new(0,3,3)) end
+		hrp.CFrame=cf
+		pcall(fungsi())
+			hrp.KecepatanLinearPerakitan=Vektor3.nol
+			hrp.KecepatanSudutPerakitan=Vektor3.nol
+		akhir)
+	akhir
+
+	-- ----- perbaikan otomatis -----
+	local heldPrompt=nil
+	lastHold lokal=0
+	fungsi lokal releaseHold()
+		jika heldPrompt maka
+			hp lokal=heldPrompt
+			heldPrompt=nil
+			pcall(function() hp:InputHoldEnd() end)
+		akhir
+	akhir
+	perbaikan fungsi lokal(g)
+		hrp lokal = getHRP(lp)
+		jika tidak hrp maka kembalikan false end
+		terbaik lokal, bd
+		untuk _,p di ipairs(getPrompts(g)) lakukan
+			jika p.Parent dan p.Enabled maka
+				lokal d=(promptPos(p,g)-hrp.Position).Magnitude
+				jika bukan bd atau d<bd maka terbaik,bd=p,d akhir
+			akhir
+		akhir
+		jika bukan yang terbaik maka
+			releaseHold()
+			kembalikan false
+		akhir
+		pcall(function() best.RequiresLineOfSight=false end)
+		jika fireproximityprompt maka
+			pcall(fireproximityprompt,best)
+		kalau tidak
+			jika heldPrompt~=best atau os.clock()-lastHold>1.5 maka
+				releaseHold()
+				heldPrompt=terbaik
+				lastHold=os.clock()
+				pcall(function() best:InputHoldBegin() end)
+			akhir
+		akhir
+		kembalikan nilai benar
+	akhir
+
+	----- pembunuh -----
+	fungsi lokal nearestKiller(myPos)
+		terbaik lokal, bd
+		untuk _,pl dalam ipairs(Players:GetPlayers()) lakukan
+			jika pl~=lp dan pl.Team dan nameHas(pl.Team.Name,"killer") maka
+				lokal h=getHRP(pl)
+				jika h maka
+					d lokal = (h.Posisi - myPos).Magnitudo
+					jika bukan bd atau d<bd maka terbaik,bd=h,d akhir
+				akhir
+			akhir
+		akhir
+		kembalikan yang terbaik,bd
+	akhir
+	fungsi lokal dapat digunakan(g,kecualikan)
+		jika g==exclude atau bukan g.Parent maka kembalikan false
+		jika skip[g] dan skip[g]>os.clock() maka kembalikan false end
+		kembali bukan isDone(g)
+	akhir
+	fungsi lokal pickNearest(pos)
+		terbaik lokal, bd
+		untuk _,g dalam ipairs(gens) lakukan
+			jika dapat digunakan(g) maka
+				d lokal=(genPos(g)-pos).Magnitudo
+				jika bukan bd atau d<bd maka terbaik,bd=g,d akhir
+			akhir
+		akhir
+		kembali terbaik
+	akhir
+	fungsi lokal pickFarthest(kpos,exclude)
+		terbaik lokal, bd
+		untuk _,g dalam ipairs(gens) lakukan
+			jika dapat digunakan(g,kecualikan) maka
+				lokal d=(genPos(g)-kpos).Magnitudo
+				jika bukan bd atau d>bd maka terbaik,bd=g,d selesai
+			akhir
+		akhir
+		kembali terbaik
+	akhir
+
+	-- =================================================================
+	-- ESP SOROT PER NAMA (LABU)
+	-- =================================================================
+	fungsi lokal makeNameEsp(matchFn,col)
+		tabel lokal={}
+		lokal aktif=false
+		fungsi lokal clear()
+			untuk o,h dalam pasangan (tbl) lakukan pcall(fungsi() h:Destroy() end) tbl[o]=nil end
+		akhir
+		tugas.munculkan(fungsi())
+			sementara main.Parent lakukan
+				tugas.tunggu(1.5)
+				jika saat itu
+					keinginan lokal={}
+					lokal n=0
+					untuk _,d dalam ipairs(workspace:GetDescendants()) lakukan
+						jika n>=300 maka hentikan
+						jika (d:IsA("Model") atau d:IsA("BasePart")) dan matchFn(d.Name) dan bukan Players:GetPlayerFromCharacter(d) maka
+							skipIt lokal=false
+							lokal a=d.Induk
+							sementara a dan a~=ruang kerja lakukan
+								jika ingin[a] maka lewatiItu=benar break end
+								a=a.Orang Tua
+							akhir
+							jika tidak lewati maka ingin[d]=benar n=n+1 selesai
+						akhir
+					akhir
+					untuk objek dalam pasangan (yang diinginkan) lakukan
+						jika bukan tbl[obj] atau bukan tbl[obj].Parent maka
+							tbl[obj]=new("Sorot",{Adornee=obj,FillColor=col,
+								OutlineColor=Color3.fromRGB(255,255,255),FillTransparency=0.4,
+								DepthMode=Enum.HighlightDepthMode.AlwaysOnTop},espFolder)
+						akhir
+					akhir
+					untuk obj,h dalam pasangan(tbl) lakukan
+						jika tidak ingin[obj] atau tidak obj.Parent maka
+							pcall(function() h:Destroy() end)
+							tbl[obj]=nil
+						akhir
+					akhir
+				akhir
+			akhir
+			jernih()
+		akhir)
+		kembalikan fungsi(v) pada=v jika tidak v maka bersihkan() akhir akhir
+	akhir
+	setLabu lokal=makeNameEsp(fungsi(n)
+		lokal l=string.lower(n)
+		kembalikan string.find(l,"pumpkin",1,true)~=nil atau string.find(l,"labu",1,true)~=nil
+	akhir,LABU_COL)
+
+	-- =================================================================
+	-- TOMBOL
+	-- =================================================================
+	local rushOn,fleeOn,pctOn,espGenOn,espPalOn=false,false,false,false,false
+	target lokal=nil
+	lastFlee lokal=0
+	local lastTp=0
+	lokal noPromptSince=nil
+	local genStatus="mati"
+	fungsi lokal needScan() lastScan=0 akhir
+
+	lokal tgSuk,tgIns
+	tgSuk=P.toggle("genSuk","SUKSES OTOMATIS",false,fungsi(aktif)
+		jika saat itu
+			mode="sukses"
+			Jika tgIns dan tgIns.value maka tgIns.set(false,true) end
+		jika mode=="sukses" maka
+			mode="mati"
+		akhir
+		dipecat=false
+		seenAt=nil
+		notify(on dan "AUTO SUKSES ON" atau "AUTO SUKSES OFF",on dan "Jarum diprediksi, tekan tepat di zona" atau "Dimatikan")
+	akhir)
+	tgIns=P.toggle("genIns","AUTO INSTAN",false,function(on))
+		jika saat itu
+			mode="instan"
+			Jika tgSuk dan tgSuk.value maka tgSuk.set(false,true) end
+		jika mode=="instan" maka
+			mode="mati"
+		akhir
+		dipecat=false
+		seenAt=nil
+		notify(on dan "AUTO INSTAN ON" atau "AUTO INSTAN OFF",on dan "Jarum langsung ke putih" atau "Dimatikan")
+	akhir)
+	P.toggle("rush","GENERATOR RUSUH",false,function(on)
+		rushOn=aktif
+		target=nil
+		noPromptSince=nil
+		releaseHold()
+		jika saat itu
+			needScan()
+			notify("RUSUH ON","Teleport ke generator, perbaikan sampai 100%")
+		kalau tidak
+			notify("RUSUH OFF","Dimatikan")
+		akhir
+	akhir)
+	P.toggle("flee","LARI DARI KILLER",false,function(on)
+		fleeOn=aktif
+		jika aktif maka perlu memindai() berakhir
+		notify(on dan "LARI ON" atau "LARI OFF",on dan "Killer dekat = teleport ke generator jauh" atau "Dimatikan")
+	akhir)
+	P.toggle("pct","GENERATOR PERSEN",false,fungsi(on)
+		pctOn=aktif
+		jika aktif maka perlu memindai() berakhir
+	akhir)
+	P.toggle("espGen","ESP GENERATOR",false,function(on)
+		espGenOn=aktif
+		jika aktif maka perlu memindai() berakhir
+	akhir)
+	local colGen=P.colors("colGen","Warna ESP generator",7)
+	P.toggle("espPal","ESP PALET",false,function(on)
+		espPalOn=aktif
+		jika aktif maka perlu memindai() berakhir
+	akhir)
+	local colPal=P.colors("colPal","Warna ESP palet",3)
+	P.toggle("espLabu","ESP LABU",false,function(on)
+		setLabu(on)
+		notify(on dan "ESP LABU ON" atau "ESP LABU OFF",on dan "Semua Pumpkin dimaksudkan" atau "Dimatikan")
+	akhir)
+
+	-- ===== ZONA SUKSES: geser + kalibrasi =====
+	local zoneInfo=P.info("",24)
+	fungsi lokal showZone()
+		zoneInfo.Text="ZONA SUKSES: "..math.floor(RANGE[1]).." - "..math.floor(RANGE[2])
+	akhir
+	showZone()
+	baris lokal zRow=P.row(34)
+	lokal zMinus=new("TextButton",{BackgroundColor3=SIDE2,Position=UDim2.new(0,6,0.5,-12),Size=UDim2.new(0.5,-9,0,24),
+		Font=FONTB,Text="< geser",TextColor3=TXT,TextSize=13,AutoButtonColor=true},zRow)
+	sudut(zMinus,5)
+	local zPlus=new("TextButton",{BackgroundColor3=ACC,Position=UDim2.new(0.5,3,0.5,-12),Size=UDim2.new(0.5,-9,0,24),
+		Font=FONTB,Text="geser >",TextColor3=BLACK,TextSize=13,AutoButtonColor=true},zRow)
+	sudut(zPlus,5)
+	fungsi lokal shiftZone(d)
+		lokal w=RANGE[2]-RANGE[1]
+		lokal lo=math.clamp(RANGE[1]+d,0,360-w)
+		RANGE[1]=lo RANGE[2]=lo+w
+		showZone()
+	akhir
+	zMinus.MouseButton1Click:Connect(function() shiftZone(-5) end)
+	zPlus.MouseButton1Click:Connect(function() shiftZone(5) end)
+
+	calBtn lokal
+	calBtn=P.button("KALIBRASI: OFF",fungsi()
+		calib.on=not calib.on
+		calBtn.Text="KALIBRASI: "..(calib.on dan "ON" atau "OFF")
+		calBtn.BackgroundColor3=calib.on dan GREEN atau SIDE2
+		jika kalibrasi aktif maka
+			nilai kalibrasi={}
+			tgSuk.set(false,true)
+			tgIns.set(false,true)
+			mode="mati"
+			notify("KALIBRASI ON","Tekkan tindakan sendiri saat jarum di putih (min 3x)")
+		kalau tidak
+			notify("KALIBRASI OFF",#calib.vals.." tekanan tercatat")
+		akhir
+	akhir,SISI2)
+	P.button("PAKAI HASIL KALIBRASI",fungsi()
+		nilai lokal=nilai kalibrasi
+		if #vals<3 then notify("Kalibrasi","Butuh minimal 3 tekan saat KALIBRASI ON") return end
+		lokal lo, hi=360,0
+		untuk setiap nilai _,v dalam ipairs(vals) lakukan lo=math.min(lo,v) hi=math.max(hi,v)
+		RANGE[1]=math.max(0,lo-3) RANGE[2]=math.min(360,hi+3)
+		showZone()
+		notify("Zona dipasang",string.format("%.0f - %.0f (%d tekan)",RANGE[1],RANGE[2],#vals))
+	akhir,SISI2)
+
+	local statusLbl=P.info("status: ...",78)
+
+	-- =================================================================
+	-- PEMINDAIAN LOOP
+	-- =================================================================
+	tugas.munculkan(fungsi())
+		sementara main.Parent lakukan
+			tugas.tunggu(1)
+			jika (rushOn atau fleeOn atau pctOn atau espGenOn atau espPalOn)
+			dan os.clock()-lastScan>SCAN_EVERY maka
+				scanMap()
+			akhir
+		akhir
+	akhir)
+
+	-- =================================================================
+	-- LOOP RUSUH + LARI
+	-- =================================================================
+	tugas.munculkan(fungsi())
+		sementara main.Parent lakukan
+			tugas.tunggu((rushOn atau fleeOn) dan 0.15 atau 0.5)
+			jika rushOn atau fleeOn maka
+				hrp lokal = getHRP(lp)
+				jika hrp maka
+					lokal kh,kd=nearestKiller(hrp.Position)
+					jika fleeOn dan kh dan kd<FLEE_DIST dan os.clock()-lastFlee>FLEE_COOLDOWN maka
+						lokal g=pickFarthest(kh.Position,target)
+						jika g maka
+							releaseHold()
+							target=g
+							lastFlee=os.clock()
+							lastTp=os.clock()
+							noPromptSince=nil
+							tpTo(g)
+						akhir
+					akhir
+					jika rushOn maka
+						jika bukan target atau tidak dapat digunakan (target) maka
+							releaseHold()
+							target=pickNearest(hrp.Position)
+							noPromptSince=nil
+							jika target maka
+								tpTo(target)
+								lastTp=os.clock()
+							akhir
+						akhir
+						jika target maka
+							jika (hrp.Position-genPos(target)).Magnitude>30 dan os.clock()-lastTp>1.5 maka
+								tpTo(target)
+								lastTp=os.clock()
+							akhir
+							jika perbaikan(target) maka
+								noPromptSince=nil
+							kalau tidak
+								noPromptSince=noPromptSince atau os.clock()
+								jika readPct(target)==nil dan os.clock()-noPromptSince>STAY_NO_PROMPT maka
+									lewati[target]=os.clock()+20
+									target=nil
+									noPromptSince=nil
+								akhir
+							akhir
+							jika target maka
+								genStatus="perbaikan "..target.Nama.." "..fmtPct((readPct(target)))
+							akhir
+						kalau tidak
+							genStatus=(#gens==0) ​​dan "generator tidak ketemu" atau "semua generator selesai"
+						akhir
+					kalau tidak
+						genStatus=target dan ("kabur ke "..target.Nama) atau "siaga kabur"
+					akhir
+					jika kd maka genStatus=genStatus..string.format(" | killer %dm",kd) berakhir
+				akhir
+			kalau tidak
+				jika target maka releaseHold() berakhir
+				target=nil
+				genStatus="mati"
+			akhir
+		akhir
+	akhir)
+
+	-- =================================================================
+	-- ESP GENERATOR / PALET (generator muncul saat terhalang tembok)
+	-- =================================================================
+	objHl lokal={}
+	objParams lokal = RaycastParams.new()
+	objParams.FilterType=Enum.RaycastFilterType.Exclude
+
+	fungsi lokal objHidden(m)
+		Kamera lokal = ruang kerja.KameraSaatIni
+		jika bukan cam maka kembalikan false end
+		lokal ign={m}
+		Jika lp.Character ada, maka sisipkan (ign,lp.Character) ke dalam tabel.
+		objParams.FilterDescendantsInstances=ign
+		asal lokal=cam.CFrame.Posisi
+		lokal pts={genPos(m)}
+		mp lokal = mainPart(m)
+		jika mp maka pts[#pts+1]=mp.Position end
+		untuk _,pos dalam ipairs(pts) lakukan
+			Jika workspace:Raycast(origin,pos-origin,objParams) tidak berfungsi, maka kembalikan false.
+		akhir
+		kembalikan nilai benar
+	akhir
+
+	tugas.munculkan(fungsi())
+		sementara main.Parent lakukan
+			tugas.tunggu(0.4)
+			jika espGenOn atau espPalOn atau next(objHl) maka
+				keinginan lokal={}
+				jika espGenOn maka untuk _,g dalam ipairs(gens) lakukan ingin[g]="gen" akhir akhir
+				jika espPalOn maka untuk _,p dalam ipairs(pals) lakukan ingin[p]="pal" akhir akhir
+				untuk m,kunci berpasangan(ingin) lakukan
+					lokal o=objHl[m]
+					jika tidak o atau o.key~=key atau tidak o.hl.Parent maka
+						jika o maka pcall(fungsi() o.hl:Destroy() end) end
+						objHl[m]={key=key,hl=new("Sorot",{
+							Adornee=m,FillTransparency=0.6,OutlineTransparency=0,
+							DepthMode=Enum.HighlightDepthMode.AlwaysOnTop,Enabled=false,
+						},espFolder)}
+					akhir
+				akhir
+				untuk m,o dalam pasangan (objHl) lakukan
+					jika tidak ingin[m] atau tidak m.Orang Tua maka
+						pcall(function() o.hl:Destroy() end)
+						objHl[m]=nil
+					kalau tidak
+						kolom lokal=(o.key=="gen") dan PALETTE[colGen.value].c atau PALETTE[colPal.value].c
+						o.hl.FillColor=col
+						o.hl.OutlineColor=col
+						o.hl.Enabled=(o.key=="pal") atau objHidden(m)
+					akhir
+				akhir
+			akhir
+		akhir
+	akhir)
+
+	-- =================================================================
+	-- PERSEN DI ATAS GENERATOR
+	-- =================================================================
+	lokal pctBB={}
+	tugas.munculkan(fungsi())
+		sementara main.Parent lakukan
+			tugas.tunggu(0.4)
+			jika pctOn maka
+				untuk _,g dalam ipairs(gens) lakukan
+					lokal b=pctBB[g]
+					jika bukan b atau bukan b.bb.Orang Tua maka
+						bagian lokal=bagian utama(g)
+						jika sebagian maka
+							lokal bb=baru("BillboardGui",{
+								Adornee=part,Size=UDim2.new(0,70,0,24),
+								StudsOffset=Vector3.new(0,4,0),AlwaysOnTop=true,ResetOnSpawn=false,
+							},espFolder)
+							lokal lbl=baru("TextLabel",{
+								BackgroundTransparency=1,Size=UDim2.new(1,0,1,0),
+								Font=FONTB,Ukuran Teks=18,Transparansi TextStroke=0,3,
+								TextColor3=TXT,Text="?%",
+							},bb)
+							b={bb=bb,lbl=lbl}
+							pctBB[g]=b
+						akhir
+					akhir
+					jika b maka
+						lokal pct=readPct(g)
+						b.lbl.Text=fmtPct(pct)
+						jika bukan pct maka
+							b.lbl.TextColor3=Warna3.dariRGB(200.200.200)
+						jika pct>=99.5 maka
+							b.lbl.TextColor3=Warna3.dariRGB(80.230.100)
+						jika pct>=50 maka
+							b.lbl.TextColor3=Warna3.dariRGB(240,200,60)
+						kalau tidak
+							b.lbl.TextColor3=Warna3.dariRGB(255,120,80)
+						akhir
+					akhir
+				akhir
+			akhir
+			jika next(pctBB) maka
+				untuk g,b berpasangan (pctBB) lakukan
+					jika bukan pctOn atau bukan g.Parent maka
+						pcall(function() b.bb:Destroy() end)
+						pctBB[g]=nol
+					akhir
+				akhir
+			akhir
+		akhir
+	akhir)
+
+	-- =================================================================
+	-- UPDATE STATUS (hanya saat tab Generator terbuka)
+	-- =================================================================
+	tugas.munculkan(fungsi())
+		sementara main.Parent lakukan
+			tugas.tunggu(0.25)
+			jika Frame.Visible dan P.page.Visible maka
+				lokal src=""
+				jika gens[1] maka
+					lokal _,nm=readPct(gens[1])
+					src=nm dan ("persen dari: "..nm) atau "persen: sumber TIDAK ketemu"
+				akhir
+				local extra=calib.on and ("\nKALIBRASI: "..#calib.vals.." tekan") atau ""
+				statusLbl.Text=string.format("SC: %s\nGEN: %d ketemu, palet %d | %s\n%s%s",
+					status terakhir,#gens,#pals,genStatus,src,ekstra)
+			akhir
+		akhir
+	akhir)
+akhir)
+
+-- =====================================================================
+-- TOMBOL RESET (paling bawah menu kiri)
+-- =====================================================================
+Mengerjakan
+	local saveBtn=new("TextButton",{
+		Ukuran=UDim2.baru(1,-8,0,26),Font=FONTB,UkuranTeks=12,UrutanTataLanjut=99,WarnaTombolOtomatis=true,Teks="",
+	},sidebar)
+	sudut(saveBtn,6)
+	fungsi lokal paintSave()
+		saveBtn.Text=autoSave dan "SIMPAN: ON" atau "SIMPAN: OFF"
+		saveBtn.BackgroundColor3=autoSave dan ACC atau OFFBG
+		saveBtn.TextColor3=autoSave dan BLACK atau DIM
+	akhir
+	paintSave()
+	saveBtn.MouseButton1Click:Connect(function()
+		autoSave = bukan autoSave
+		paintSave()
+		simpanSekarang()
+		beri tahu (autoSave dan "AUTO SIMPAN ON" atau "AUTO SIMPAN OFF",
+			simpan otomatis dan "Pengaturan disimpan & dimuat otomatis" atau "Pengaturan tidak disimpan lagi")
+	akhir)
+
+	local resetBtn=new("TextButton",{
+		Ukuran=UDim2.baru(1,-8,0,26),WarnaLatarBelakang3=Warna3.dariRGB(150,50,25),Font=FONTB,
+		Teks="RESET", WarnaTeks3=TXT, UkuranTeks=13, UrutanTata Letak=100, WarnaTombolOtomatis=true,
+	},sidebar)
+	pojok(tombol reset,6)
+	konfirmasi lokal pada=0
+	resetBtn.MouseButton1Click:Connect(function()
+		jika os.clock()-confirmAt>3 maka
+			confirmAt=os.clock()
+			resetBtn.Text="YAKIN?"
+			tugas.tunda(3,fungsi())
+				jika os.clock()-confirmAt>=3 maka resetBtn.Text="RESET" end
+			akhir)
+			kembali
+		akhir
+		konfirmasiPada=0
+		resetBtn.Text="RESET"
+		untuk _,c dalam pasangan(kontrol) lakukan pcall(c.set,c.default) end
+		pcall(fungsi())
+			jika delfile dan isfile dan isfile(CFG_FILE) maka delfile(CFG_FILE) selesai
+		akhir)
+		G.GodConfig=nil
+		G.GodZone={116,159}
+		simpanSekarang()
+		notify("RESET","Semua kembali ke awal")
+	akhir)
+akhir
+
+-- ====== MUAT PENGATURAN TERSIMPAN ======
+tampilkanTab(1)
+jika autoSave maka
+	untuk k,c berpasangan (kontrol) lakukan
+		jika saved[k]~=nil maka pcall(c.set,saved[k]) end
+	akhir
+akhir
+loading=false
+pcall(fungsi())
+	StarterGui:SetCore("Kirim Notifikasi",{
+		Title="☠️ Panel siap";Text=autoSave dan "Pengaturan terakhir dimuat" atau "Auto simpan OFF";Duration=3;
+	})
+akhir)
